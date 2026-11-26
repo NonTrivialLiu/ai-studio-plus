@@ -1,10 +1,36 @@
 /**
  * AI Studio Plus - Main Orchestrator
- * ISOLATED 世界的入口 (document_start)：等 DOM 可用后启动气泡与侧栏；
+ * ISOLATED 世界的入口 (document_start)：在文档起点预热关键跨域连接、等 DOM 可用后启动气泡与侧栏；
  * 浏览器不支持 content_scripts.world = "MAIN" 时，负责把拦截器兜底注入主世界。
  */
 (() => {
   const MARKER = 'data-aip-interceptor';
+  const PRECONNECT_ORIGINS = [
+    'https://waa-pa.clients6.google.com',
+    'https://apis.google.com',
+    'https://people-pa.clients6.google.com'
+  ];
+
+  // 在 document_start 并行预热页面缺失的关键跨域 TLS/代理隧道，标准 Hint 失败安全退化
+  function injectPreconnects() {
+    const parent = document.head || document.documentElement;
+    if (!parent) return;
+    const existing = new Set();
+    document.querySelectorAll('link[rel~="preconnect"][href]').forEach(el => {
+      try { existing.add(new URL(el.href, location.href).origin); } catch (_) {}
+    });
+    for (const origin of PRECONNECT_ORIGINS) {
+      if (existing.has(origin)) continue;
+      existing.add(origin);
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = origin;
+      link.crossOrigin = 'anonymous';
+      link.dataset.aipPreconnect = '1';
+      parent.appendChild(link);
+    }
+  }
+  injectPreconnects();
 
   // 1. 气泡与侧栏都要等 <body> 出来
   function start() {

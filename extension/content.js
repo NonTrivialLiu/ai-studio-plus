@@ -1198,7 +1198,7 @@ globalThis.AIPSidebarUI = (() => {
     historyLink: null, open: false, rows: new Map(), groups: new Map(), marks: new WeakMap(), tick: 0,
     view: null, nearEnd: true, activeId: undefined, statusKind: '', revealed: false, edit: null, menu: null,
     busy: false, selecting: false, selected: new Set(), uncertain: new Set(), gesture: null,
-    suppressClick: null, batchDialog: null, observer: null, io: null,
+    suppressClick: null, batchDialog: null, observer: null, ancestorObserver: null, io: null,
     frame: 0, searchTimer: 0, paceTimer: 0, noticeTimer: 0, actionSeq: 0, listening: false
   };
 
@@ -1216,9 +1216,8 @@ globalThis.AIPSidebarUI = (() => {
 
   function mount() {
     if (state.root && state.root.isConnected) return true;
-    watch();
     const nav = document.querySelector(NAV), list = nav && nav.querySelector(LIST);
-    if (!list) return false;
+    if (!list) { syncWatchScope(); return false; }
     const searchValue = state.input?.value || '';
     closePopups();
     selection.cancelPress();
@@ -1236,6 +1235,7 @@ globalThis.AIPSidebarUI = (() => {
     placeHandle(list);
     setDrawer(list, false);
     wire();
+    syncWatchScope();
     if (!state.listening) {
       state.listening = true;
       store.subscribe(render);
@@ -1254,14 +1254,35 @@ globalThis.AIPSidebarUI = (() => {
     return true;
   }
 
-  function watch() {
-    if (state.observer) return;
-    state.observer = new MutationObserver(records => {
-      if (state.nav?.isConnected && state.root?.isConnected &&
-          !records.some(r => state.nav.contains(r.target) || r.target.contains(state.nav))) return;
-      if (!state.frame) state.frame = requestAnimationFrame(() => { state.frame = 0; ensure(); });
-    });
-    state.observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+  function scheduleEnsure() {
+    if (!state.frame) state.frame = requestAnimationFrame(() => { state.frame = 0; ensure(); });
+  }
+
+  // 挂载完成后仅观察侧栏内部及其祖先直系子节点 (subtree: false)，完全屏蔽对话区流式吐字变更
+  function syncWatchScope() {
+    if (!state.observer) {
+      state.observer = new MutationObserver(records => {
+        if (state.nav?.isConnected && state.root?.isConnected &&
+            !records.some(r => state.nav.contains(r.target) || r.target.contains(state.nav))) return;
+        scheduleEnsure();
+      });
+    }
+    if (!state.ancestorObserver) {
+      state.ancestorObserver = new MutationObserver(() => {
+        if (!state.nav?.isConnected || !state.root?.isConnected) scheduleEnsure();
+      });
+    }
+    state.observer.disconnect();
+    state.ancestorObserver.disconnect();
+    if (state.nav?.isConnected && state.root?.isConnected) {
+      state.observer.observe(state.nav, { childList: true, subtree: true });
+      for (let el = state.nav.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+        state.ancestorObserver.observe(el, { childList: true, subtree: false });
+      }
+      return;
+    }
+    const fallback = document.body || document.documentElement;
+    if (fallback) state.observer.observe(fallback, { childList: true, subtree: true });
   }
 
   function buildRoot() {
@@ -1563,10 +1584,11 @@ globalThis.AIPSidebarUI = (() => {
   function closePopups() { menu.closeMenu(undefined, false); selection.closeBatchDialog(false); }
 
   function ensure() {
-    if (!state.root || !state.root.isConnected) { if (mount()) onRoute(); return; }
+    if (!state.root || !state.root.isConnected) { if (mount()) onRoute(); else syncWatchScope(); return; }
     styleNewChat(state.list);
     tagDrawer(state.list);
     placeHandle(state.list);
+    syncWatchScope();
   }
 
   return { mount };
@@ -1633,6 +1655,8 @@ globalThis.AIPNavCollapse = (() => {
   let started = false;
   let syncQueued = false;
   let pointer = null;
+  let hostObserver = null;
+  let ancestorObserver = null;
   const contentObserver = new MutationObserver(() => sync());
 
   function isCollapsed() {
@@ -1725,6 +1749,7 @@ globalThis.AIPNavCollapse = (() => {
       nav = null;
       content = null;
       pin = null;
+      syncWatchScope();
       return;
     }
     if (nextContent !== content) {
@@ -1754,6 +1779,7 @@ globalThis.AIPNavCollapse = (() => {
         document.querySelector(OPEN)?.click();
       });
       document.body.appendChild(pin);
+      syncWatchScope();
     }
     if (!isCollapsed()) {
       const measured = content.getBoundingClientRect().width;
@@ -1832,17 +1858,39 @@ globalThis.AIPNavCollapse = (() => {
     button.click();
   }
 
+  // 挂载完成后仅监听 nav 自身及祖先链直系子节点，屏蔽对话区虚拟滚动带来的全树抖动
+  function syncWatchScope() {
+    if (!hostObserver || !ancestorObserver) return;
+    hostObserver.disconnect();
+    ancestorObserver.disconnect();
+    if (nav?.isConnected && content?.isConnected) {
+      hostObserver.observe(nav, { childList: true, subtree: false });
+      const watched = new Set();
+      for (let el = nav.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+        if (!watched.has(el)) { watched.add(el); ancestorObserver.observe(el, { childList: true, subtree: false }); }
+      }
+      if (pin?.parentElement && !watched.has(pin.parentElement)) {
+        ancestorObserver.observe(pin.parentElement, { childList: true, subtree: false });
+      }
+      return;
+    }
+    const fallback = document.body || document.documentElement;
+    if (fallback) hostObserver.observe(fallback, { subtree: true, childList: true });
+  }
+
   function start() {
     if (started) return;
     started = true;
-    sync();
-    const observer = new MutationObserver(() => {
+    const onWatch = () => {
       if (!content?.isConnected || !pin?.isConnected) {
         if (!nav) scheduleSync();
         else sync();
       }
-    });
-    observer.observe(document.body, { subtree: true, childList: true });
+    };
+    hostObserver = new MutationObserver(onWatch);
+    ancestorObserver = new MutationObserver(onWatch);
+    sync();
+    syncWatchScope();
     document.addEventListener('pointerover', onPointerOver);
     document.addEventListener('pointerout', onPointerOut);
     document.addEventListener('pointerdown', event => {
@@ -2048,77 +2096,133 @@ globalThis.AIPRunSettingsPeek = (() => {
  * AI Studio Plus - Bubbles Module
  * 负责用户消息右对齐深色气泡绘制、长消息自动折叠 (>300px 折叠为 240px 预览)、
  * 视口高度占位感知 (防空黑块) 与 Anti-Layout Thrashing 缓存机制。
+ * 增量脏集刷新 + 被动滚动让路 + 双层收窄观测器，避免超长对话高速滚动或流式吐字抢占主线程。
  */
 globalThis.AIPBubbles = (() => {
   const COLLAPSE_THRESHOLD_PX = 300;
   const SCROLL_DELAY_MS = 100;
+  const SCROLL_IDLE_MS = 120;
   const selector = 'ms-chat-turn > .chat-turn-container.user';
+  const TURN_OBSERVE_OPTIONS = {
+    subtree: true,
+    childList: true,
+    characterData: true,
+    attributes: true,
+    attributeFilter: ['class', 'style', 'contenteditable']
+  };
   const states = new WeakMap();
+  const observedTurns = new WeakSet();
+  const dirtyTurns = new Set();
+  let fullScan = false;
   let queued = false;
+  let scrolling = false;
+  let scrollIdleTimer = 0;
+  let initialized = false;
+
+  function observeTurn(container) {
+    if (observedTurns.has(container)) return;
+    observedTurns.add(container);
+    turnObserver.observe(container, TURN_OBSERVE_OPTIONS);
+  }
+
+  function processContainer(container) {
+    if (!container || container.isConnected === false) return;
+    observeTurn(container);
+    const prompt = container.querySelector('.user-prompt-container');
+    if (!prompt) return;
+    let state = states.get(container);
+    if (!state) {
+      container.querySelectorAll(':scope > .aib-toggle').forEach(button => button.remove());
+      const button = document.createElement('button');
+      button.type = 'button';
+      button.className = 'aib-toggle';
+      state = { button, expanded: false, prompt: null, measuredHeight: 0, dirty: true };
+      states.set(container, state);
+      button.addEventListener('click', () => {
+        state.expanded = !state.expanded;
+        processContainer(container);
+        // 等待 AI Studio 内部更新其缓存的 turn 高度后再进行平滑定位
+        if (!state.expanded) setTimeout(() => {
+          if (container.isConnected) container.scrollIntoView({ block: 'start' });
+        }, SCROLL_DELAY_MS);
+      });
+    }
+    if (state.prompt !== prompt) {
+      if (state.prompt) resize.unobserve(state.prompt);
+      state.prompt = prompt;
+      state.dirty = true;
+      resize.observe(prompt);
+    }
+    const content = prompt.querySelector('.turn-content');
+    const ready = !!content && (content.textContent.trim().length > 0 ||
+      !!content.querySelector('img, video, canvas, audio, textarea, [contenteditable="true"]'));
+    container.toggleAttribute('data-aib-ready', ready);
+    const placeholder = prompt.firstElementChild;
+
+    // 读取内联样式高度 (不触发重排)
+    const placeholderHeight = parseFloat(placeholder?.style.height) || 0;
+    let height = placeholderHeight;
+    if (height <= COLLAPSE_THRESHOLD_PX && (state.dirty || !state.measuredHeight)) {
+      state.measuredHeight = content?.scrollHeight || 0;
+      state.dirty = false;
+    }
+    height = Math.max(height, state.measuredHeight);
+
+    const editing = container.querySelector('textarea, [contenteditable="true"]') ||
+      !container.classList.contains('render');
+    const long = ready && height > COLLAPSE_THRESHOLD_PX;
+    const collapsed = long && !state.expanded && !editing;
+    container.toggleAttribute('data-aib-collapsed', collapsed);
+    state.button.hidden = !long || !!editing;
+    state.button.setAttribute('aria-expanded', String(!collapsed));
+    const label = collapsed ? '显示更多' : '收起';
+    if (state.button.textContent !== label) state.button.textContent = label;
+    if (state.button.parentElement !== container) container.append(state.button);
+  }
 
   function refresh() {
     queued = false;
+    fullScan = false;
+    dirtyTurns.clear();
     const containers = document.querySelectorAll(selector);
     if (!containers.length) return;
-
-    containers.forEach(container => {
-      const prompt = container.querySelector('.user-prompt-container');
-      if (!prompt) return;
-      let state = states.get(container);
-      if (!state) {
-        container.querySelectorAll(':scope > .aib-toggle').forEach(button => button.remove());
-        const button = document.createElement('button');
-        button.type = 'button';
-        button.className = 'aib-toggle';
-        state = { button, expanded: false, prompt: null, measuredHeight: 0, dirty: true };
-        states.set(container, state);
-        button.addEventListener('click', () => {
-          state.expanded = !state.expanded;
-          refresh();
-          // 等待 AI Studio 内部更新其缓存的 turn 高度后再进行平滑定位
-          if (!state.expanded) setTimeout(() => {
-            if (container.isConnected) container.scrollIntoView({ block: 'start' });
-          }, SCROLL_DELAY_MS);
-        });
-      }
-      if (state.prompt !== prompt) {
-        if (state.prompt) resize.unobserve(state.prompt);
-        state.prompt = prompt;
-        state.dirty = true;
-        resize.observe(prompt);
-      }
-      const content = prompt.querySelector('.turn-content');
-      const ready = !!content && (content.textContent.trim().length > 0 ||
-        !!content.querySelector('img, video, canvas, audio, textarea, [contenteditable="true"]'));
-      container.toggleAttribute('data-aib-ready', ready);
-      const placeholder = prompt.firstElementChild;
-
-      // 读取内联样式高度 (不触发重排)
-      const placeholderHeight = parseFloat(placeholder?.style.height) || 0;
-      let height = placeholderHeight;
-      if (height <= COLLAPSE_THRESHOLD_PX && (state.dirty || !state.measuredHeight)) {
-        state.measuredHeight = content?.scrollHeight || 0;
-        state.dirty = false;
-      }
-      height = Math.max(height, state.measuredHeight);
-
-      const editing = container.querySelector('textarea, [contenteditable="true"]') ||
-        !container.classList.contains('render');
-      const long = ready && height > COLLAPSE_THRESHOLD_PX;
-      const collapsed = long && !state.expanded && !editing;
-      container.toggleAttribute('data-aib-collapsed', collapsed);
-      state.button.hidden = !long || !!editing;
-      state.button.setAttribute('aria-expanded', String(!collapsed));
-      const label = collapsed ? '显示更多' : '收起';
-      if (state.button.textContent !== label) state.button.textContent = label;
-      if (state.button.parentElement !== container) container.append(state.button);
-    });
+    containers.forEach(processContainer);
   }
 
-  function schedule() {
-    if (queued) return;
+  function flush() {
+    queued = false;
+    if (scrolling) return;
+    if (fullScan) {
+      refresh();
+      return;
+    }
+    if (!dirtyTurns.size) return;
+    const batch = Array.from(dirtyTurns);
+    dirtyTurns.clear();
+    for (const container of batch) processContainer(container);
+  }
+
+  function queueFlush() {
+    if (scrolling || queued || (!fullScan && !dirtyTurns.size)) return;
     queued = true;
-    requestAnimationFrame(refresh);
+    requestAnimationFrame(flush);
+  }
+
+  function schedule(container) {
+    if (container) dirtyTurns.add(container);
+    else fullScan = true;
+    queueFlush();
+  }
+
+  function onScroll(event) {
+    const target = event?.target;
+    if (target?.closest?.('#aip-history')) return;
+    scrolling = true;
+    clearTimeout(scrollIdleTimer);
+    scrollIdleTimer = setTimeout(() => {
+      scrolling = false;
+      queueFlush();
+    }, SCROLL_IDLE_MS);
   }
 
   const resize = new ResizeObserver(entries => {
@@ -2131,42 +2235,45 @@ globalThis.AIPBubbles = (() => {
           state.measuredHeight = entry.contentRect.height;
         }
       }
+      if (container) schedule(container);
     }
-    schedule();
   });
 
-  const observer = new MutationObserver(records => {
-    let shouldSchedule = false;
+  const turnObserver = new MutationObserver(records => {
     for (let i = 0; i < records.length; i++) {
       const record = records[i];
       const target = record.target.nodeType === 1 ? record.target : record.target.parentElement;
       if (target?.closest('.aib-toggle')) continue;
       const userContainer = target?.closest(selector);
-      if (userContainer) {
-        const state = states.get(userContainer);
-        if (state) state.dirty = true;
-        const hasRelevantAdd = Array.from(record.addedNodes).some(n => !n.classList?.contains('aib-toggle'));
-        if (hasRelevantAdd || record.type !== 'childList' || record.removedNodes.length > 0) {
-          shouldSchedule = true;
-          break;
-        }
-      } else {
-        const hasTurn = Array.from(record.addedNodes).some(n => n.nodeType === 1 &&
-          (n.matches(selector) || n.querySelector(selector)));
-        if (hasTurn) {
-          shouldSchedule = true;
-          break;
-        }
+      if (!userContainer) continue;
+      const state = states.get(userContainer);
+      if (state) state.dirty = true;
+      const hasRelevantAdd = Array.from(record.addedNodes).some(n => !n.classList?.contains('aib-toggle'));
+      if (hasRelevantAdd || record.type !== 'childList' || record.removedNodes.length > 0) {
+        schedule(userContainer);
       }
     }
-    if (shouldSchedule) schedule();
+  });
+
+  const rootObserver = new MutationObserver(records => {
+    for (let i = 0; i < records.length; i++) {
+      const record = records[i];
+      const target = record.target;
+      if (target.nodeType === 1 && target.closest('.chat-turn-container.model')) continue;
+      for (const node of record.addedNodes) {
+        if (node.nodeType !== 1) continue;
+        if (node.matches(selector)) schedule(node);
+        else node.querySelectorAll(selector).forEach(schedule);
+      }
+    }
   });
 
   function init() {
-    observer.observe(document.body, {
-      subtree: true, childList: true, characterData: true,
-      attributes: true, attributeFilter: ['class', 'style', 'contenteditable']
-    });
+    if (!initialized) {
+      initialized = true;
+      rootObserver.observe(document.body, { subtree: true, childList: true });
+      document.addEventListener?.('scroll', onScroll, { passive: true, capture: true });
+    }
     refresh();
   }
 
@@ -2175,11 +2282,37 @@ globalThis.AIPBubbles = (() => {
 
 /**
  * AI Studio Plus - Main Orchestrator
- * ISOLATED 世界的入口 (document_start)：等 DOM 可用后启动气泡与侧栏；
+ * ISOLATED 世界的入口 (document_start)：在文档起点预热关键跨域连接、等 DOM 可用后启动气泡与侧栏；
  * 浏览器不支持 content_scripts.world = "MAIN" 时，负责把拦截器兜底注入主世界。
  */
 (() => {
   const MARKER = 'data-aip-interceptor';
+  const PRECONNECT_ORIGINS = [
+    'https://waa-pa.clients6.google.com',
+    'https://apis.google.com',
+    'https://people-pa.clients6.google.com'
+  ];
+
+  // 在 document_start 并行预热页面缺失的关键跨域 TLS/代理隧道，标准 Hint 失败安全退化
+  function injectPreconnects() {
+    const parent = document.head || document.documentElement;
+    if (!parent) return;
+    const existing = new Set();
+    document.querySelectorAll('link[rel~="preconnect"][href]').forEach(el => {
+      try { existing.add(new URL(el.href, location.href).origin); } catch (_) {}
+    });
+    for (const origin of PRECONNECT_ORIGINS) {
+      if (existing.has(origin)) continue;
+      existing.add(origin);
+      const link = document.createElement('link');
+      link.rel = 'preconnect';
+      link.href = origin;
+      link.crossOrigin = 'anonymous';
+      link.dataset.aipPreconnect = '1';
+      parent.appendChild(link);
+    }
+  }
+  injectPreconnects();
 
   // 1. 气泡与侧栏都要等 <body> 出来
   function start() {

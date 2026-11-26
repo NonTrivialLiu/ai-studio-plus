@@ -22,6 +22,8 @@ globalThis.AIPNavCollapse = (() => {
   let started = false;
   let syncQueued = false;
   let pointer = null;
+  let hostObserver = null;
+  let ancestorObserver = null;
   const contentObserver = new MutationObserver(() => sync());
 
   function isCollapsed() {
@@ -114,6 +116,7 @@ globalThis.AIPNavCollapse = (() => {
       nav = null;
       content = null;
       pin = null;
+      syncWatchScope();
       return;
     }
     if (nextContent !== content) {
@@ -143,6 +146,7 @@ globalThis.AIPNavCollapse = (() => {
         document.querySelector(OPEN)?.click();
       });
       document.body.appendChild(pin);
+      syncWatchScope();
     }
     if (!isCollapsed()) {
       const measured = content.getBoundingClientRect().width;
@@ -221,17 +225,39 @@ globalThis.AIPNavCollapse = (() => {
     button.click();
   }
 
+  // 挂载完成后仅监听 nav 自身及祖先链直系子节点，屏蔽对话区虚拟滚动带来的全树抖动
+  function syncWatchScope() {
+    if (!hostObserver || !ancestorObserver) return;
+    hostObserver.disconnect();
+    ancestorObserver.disconnect();
+    if (nav?.isConnected && content?.isConnected) {
+      hostObserver.observe(nav, { childList: true, subtree: false });
+      const watched = new Set();
+      for (let el = nav.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+        if (!watched.has(el)) { watched.add(el); ancestorObserver.observe(el, { childList: true, subtree: false }); }
+      }
+      if (pin?.parentElement && !watched.has(pin.parentElement)) {
+        ancestorObserver.observe(pin.parentElement, { childList: true, subtree: false });
+      }
+      return;
+    }
+    const fallback = document.body || document.documentElement;
+    if (fallback) hostObserver.observe(fallback, { subtree: true, childList: true });
+  }
+
   function start() {
     if (started) return;
     started = true;
-    sync();
-    const observer = new MutationObserver(() => {
+    const onWatch = () => {
       if (!content?.isConnected || !pin?.isConnected) {
         if (!nav) scheduleSync();
         else sync();
       }
-    });
-    observer.observe(document.body, { subtree: true, childList: true });
+    };
+    hostObserver = new MutationObserver(onWatch);
+    ancestorObserver = new MutationObserver(onWatch);
+    sync();
+    syncWatchScope();
     document.addEventListener('pointerover', onPointerOver);
     document.addEventListener('pointerout', onPointerOut);
     document.addEventListener('pointerdown', event => {

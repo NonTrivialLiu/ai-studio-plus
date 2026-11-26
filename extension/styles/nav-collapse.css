@@ -1,4 +1,10 @@
 /* 预览覆盖在内容之上；原生折叠状态仍决定主内容宽度。 */
+/* 原生侧栏收起且未处于悬浮预览态时，清除宿主残留宽度（修复窄屏或 Voyager 等扩展导致的左侧空白占位） */
+ms-navbar-v2:has(> .nav-content.collapsed:not(.aip-peek)) {
+  width: 0 !important;
+  min-width: 0 !important;
+}
+
 ms-navbar-v2:has(.nav-content.collapsed.aip-peek) {
   position: relative;
   min-width: var(--aip-collapsed-width);

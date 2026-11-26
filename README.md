@@ -123,8 +123,8 @@ Google AI Studio's default navigation tucks your recent prompts away on a separa
       <p>Right-aligned user prompt bubbles automatically collapse messages taller than <code>300px</code> into a clean <code>240px</code> fade-out preview with one-click expand/collapse.</p>
     </td>
     <td width="50%" valign="top">
-      <h3>&#x1F50B; Battery &amp; GPU Relief</h3>
-      <p>Replaces expensive global <code>backdrop-filter</code> blurs with matched solid surfaces and trims non-essential continuous animations while keeping loading spinners intact.</p>
+      <h3>&#x1F50B; Battery, GPU &amp; Latency Relief</h3>
+      <p>Removes overlay <code>backdrop-filter</code> blurs and universal CSS transition scans, skips off-screen history row paint via <code>content-visibility: auto</code>, scopes observers away from virtualized scrolling with passive scroll yielding, prevents narrow-viewport sidebar gap, and preconnects key origins at <code>document_start</code>.</p>
     </td>
   </tr>
 </table>
@@ -185,6 +185,7 @@ Download and unzip the newest release over the same folder (or run `git pull && 
 - **Zero Background Workers** — No persistent background service worker; runs strictly on `aistudio.google.com` and `aistudio.google.cn`.
 - **Zero Telemetry or External Servers** — Reuses your existing signed-in Google AI Studio session directly. Chat metadata (ID, title, timestamp) is cached only in your browser tab's `sessionStorage`.
 - **Strict Trusted Types Compliant** — Built purely with native DOM APIs (`createElement` / `textContent`), zero `innerHTML`, and zero dynamic `eval`.
+- Read the full [Privacy Policy](PRIVACY.md) for store compliance details.
 
 ---
 
@@ -193,6 +194,11 @@ Download and unzip the newest release over the same folder (or run `git pull && 
 <details>
 <summary><strong>Does it work with Dark Mode and Light Mode?</strong></summary>
 <p>Yes. All extension surfaces, borders, hover highlights, and semantic danger controls inherit AI Studio's theme tokens with matched <code>light-dark()</code> fallbacks.</p>
+</details>
+
+<details>
+<summary><strong>Initial page load still feels slow behind a VPN &mdash; why, and what helps?</strong></summary>
+<p>Browser profiling shows ~95% of initial load delay on VPNs comes from multi-domain RPC/CORS round-trips rather than CPU rendering. While AI Studio Plus preconnects high-latency origins at <code>document_start</code>, keeping a zero-permission design means it intentionally avoids spoofing private Google APIs. For the fastest startup behind a proxy: <strong>(1)</strong> pin all <code>*.google.com</code> / <code>*.gstatic.com</code> / <code>*.clients6.google.com</code> domains to a single low-latency HTTP/2 node, <strong>(2)</strong> set <code>www.googletagmanager.com</code> and <code>play.google.com</code> to <code>REJECT</code> instead of letting telemetry hang, and <strong>(3)</strong> keep disk caching enabled so <code>gstatic.com</code> JS bundles (~2 MB) stay cached.</p>
 </details>
 
 <details>

@@ -420,6 +420,8 @@ ms-navbar-v2 nav:has(.aip-history) > .empty-space {
   border-radius: 10px !important;
   background: var(--aip-row-bg) !important;
   font: 500 14px/20px var(--aip-font) !important;
+  content-visibility: auto;
+  contain-intrinsic-block-size: 28px;
 }
 
 .aip-row:hover,
@@ -964,6 +966,12 @@ ms-navbar-v2 ms-navbar-promo-card {
 }
 
 /* 预览覆盖在内容之上；原生折叠状态仍决定主内容宽度。 */
+/* 原生侧栏收起且未处于悬浮预览态时，清除宿主残留宽度（修复窄屏或 Voyager 等扩展导致的左侧空白占位） */
+ms-navbar-v2:has(> .nav-content.collapsed:not(.aip-peek)) {
+  width: 0 !important;
+  min-width: 0 !important;
+}
+
 ms-navbar-v2:has(.nav-content.collapsed.aip-peek) {
   position: relative;
   min-width: var(--aip-collapsed-width);
@@ -1067,14 +1075,31 @@ ms-right-side-panel.aip-run-peek ms-run-settings button[aria-label="Close run se
 
 /* ==========================================================================
    AI Studio Plus - Performance & Battery Preservation Engine
-   - 彻底切除 macOS / Retina 屏幕下 backdrop-filter 的高额 GPU 采样与模糊卷积计算
-   - 消除无休止的非功能性动画与平滑滚动带来的复合层连续重绘
-   - 最优权衡：保留模型加载指示器 (Spinner)、进度条与打字光标闪烁
-   - 提供浮动层实色底衬兜底，确保模糊滤镜移除后界面元素文字清晰无穿透
+   - 定向切除站点壳层/浮层的 backdrop-filter 模糊卷积，释放 macOS/Retina GPU 合成开销
+   - 用定向容器规则替代高开销全局 *:not(...)×6 通配匹配，降低流式吐字期 RecalcStyle 耗时
+   - 为已完成的离屏模型回答与历史列表行启用安全边界内的 content-visibility: auto
+   - 保留模型加载指示器 (Spinner)、进度条与打字光标动效
    ========================================================================== */
 
-/* 1. 禁用全局 backdrop-filter，释放 Chrome GPU Process */
-*, *::before, *::after {
+/* 1. 定向禁用顶栏、侧栏与浮层 backdrop-filter，释放 Chrome GPU Process */
+ms-header,
+.mat-toolbar,
+ms-navbar-v2,
+ms-navbar-v2 .nav-content,
+ms-navbar-v2 .nav-flyout-panel,
+ms-right-side-panel,
+ms-run-settings,
+ms-prompt-nav,
+ms-model-parameters,
+.cdk-overlay-pane,
+.cdk-overlay-backdrop,
+.mat-mdc-menu-panel,
+.mat-mdc-dialog-container,
+.mat-mdc-select-panel,
+.mat-mdc-tooltip-panel,
+.mat-expansion-panel,
+.prompt-box-container,
+.floating-toggle-button {
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
@@ -1108,8 +1133,24 @@ html, body, :root {
   scroll-behavior: auto !important;
 }
 
-/* 4. 消除高频 CSS 样式过渡 (保留加载动效，杜绝流式输出和输入框打字时的级联重绘) */
-*:not(mat-spinner):not(mat-progress-spinner):not(.mdc-circular-progress):not([role="progressbar"]):not(.loading-indicator):not(.aip-spinner) {
+/* 4. 仅作用于布局壳层与常用交互控件的零延迟过渡 (自然避开进度 Spinner，避免全节点通配重算) */
+ms-navbar-v2,
+ms-navbar-v2 .nav-content,
+ms-navbar-v2 button,
+ms-navbar-v2 a,
+ms-right-side-panel,
+ms-run-settings,
+.cdk-overlay-pane,
+.mat-mdc-menu-panel,
+.mat-mdc-dialog-container,
+.mat-mdc-select-panel,
+.mat-expansion-panel,
+ms-chat-turn,
+.chat-turn-container,
+.mat-mdc-button,
+.mat-mdc-icon-button,
+.mdc-button,
+.mat-mdc-menu-item {
   transition-duration: 0s !important;
   transition-delay: 0s !important;
 }

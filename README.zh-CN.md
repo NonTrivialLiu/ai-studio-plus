@@ -123,8 +123,8 @@ Google AI Studio 原生侧栏默认不展示历史对话列表，查找或整理
       <p>用户消息右对齐呈现，高度超过 <code>300px</code> 时自动折叠为 <code>240px</code> 渐隐预览，一键展开或收起，并保留站点的离屏虚拟占位。</p>
     </td>
     <td width="50%" valign="top">
-      <h3>&#x1F50B; GPU 与续航优化</h3>
-      <p>移除高开销的全局 <code>backdrop-filter</code> 毛玻璃（替换为主题匹配的实色面板）并精简非功能性持续动画，同时保留加载指示器。</p>
+      <h3>&#x1F50B; GPU、续航与响应优化</h3>
+      <p>定向切除浮层高开销 <code>backdrop-filter</code> 与全局通配样式重算，为历史列表行启用 <code>content-visibility: auto</code>，增量刷新与滚动让路屏蔽超长对话拖拽重排，消除窄屏侧栏残留空白并在 <code>document_start</code> 预热跨域连接。</p>
     </td>
   </tr>
 </table>
@@ -185,6 +185,7 @@ npm run build
 - **零后台服务** — 无 Service Worker 常驻进程，仅在 `aistudio.google.com` 与 `aistudio.google.cn` 运行。
 - **零遥测与外部通信** — 直接复用你在 Google AI Studio 的现有登录态；会话列表仅在当前标签页的 `sessionStorage` 中临时缓存 ID、标题和更新时间。
 - **Strict Trusted Types 合规** — 全部界面严格使用原生 DOM API（`createElement` / `textContent`）构建，无 `innerHTML` 与动态 `eval`。
+- 完整合规说明见 [隐私政策 (PRIVACY.md)](PRIVACY.md)。
 
 ---
 
@@ -193,6 +194,11 @@ npm run build
 <details>
 <summary><strong>是否适配浅色与深色主题？</strong></summary>
 <p>支持。扩展的侧栏、浮层、边框、悬停态与删除危险色均复用 AI Studio 的主题变量，并配有对应的 <code>light-dark()</code> 深浅色兜底。</p>
+</details>
+
+<details>
+<summary><strong>开启 VPN 后首次打开页面还是偏慢，有什么进一步提速建议？</strong></summary>
+<p>真实性能采样显示，首次加载耗时 95% 来自跨域名 RPC 与 TLS 往返而非本地 CPU。插件已在 <code>document_start</code> 为关键端点补充 <code>preconnect</code> 预热，但为坚守「零权限、不伪造私有协议」的原则，不会强行拦截外部埋点域名。代理侧配合以下 3 点效果最明显：<strong>①</strong> 将 <code>*.google.com</code>、<code>*.gstatic.com</code>、<code>*.clients6.google.com</code> 固定在同一低延迟 HTTP/2 节点；<strong>②</strong> 对 <code>www.googletagmanager.com</code> 与 <code>play.google.com</code> 配置 <code>REJECT</code> 规则避免超时挂起；<strong>③</strong> 保留浏览器磁盘缓存，避免反复下载约 2 MB 的静态 JS。</p>
 </details>
 
 <details>

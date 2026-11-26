@@ -21,7 +21,7 @@ globalThis.AIPSidebarUI = (() => {
     historyLink: null, open: false, rows: new Map(), groups: new Map(), marks: new WeakMap(), tick: 0,
     view: null, nearEnd: true, activeId: undefined, statusKind: '', revealed: false, edit: null, menu: null,
     busy: false, selecting: false, selected: new Set(), uncertain: new Set(), gesture: null,
-    suppressClick: null, batchDialog: null, observer: null, io: null,
+    suppressClick: null, batchDialog: null, observer: null, ancestorObserver: null, io: null,
     frame: 0, searchTimer: 0, paceTimer: 0, noticeTimer: 0, actionSeq: 0, listening: false
   };
 
@@ -39,9 +39,8 @@ globalThis.AIPSidebarUI = (() => {
 
   function mount() {
     if (state.root && state.root.isConnected) return true;
-    watch();
     const nav = document.querySelector(NAV), list = nav && nav.querySelector(LIST);
-    if (!list) return false;
+    if (!list) { syncWatchScope(); return false; }
     const searchValue = state.input?.value || '';
     closePopups();
     selection.cancelPress();
@@ -59,6 +58,7 @@ globalThis.AIPSidebarUI = (() => {
     placeHandle(list);
     setDrawer(list, false);
     wire();
+    syncWatchScope();
     if (!state.listening) {
       state.listening = true;
       store.subscribe(render);
@@ -77,14 +77,35 @@ globalThis.AIPSidebarUI = (() => {
     return true;
   }
 
-  function watch() {
-    if (state.observer) return;
-    state.observer = new MutationObserver(records => {
-      if (state.nav?.isConnected && state.root?.isConnected &&
-          !records.some(r => state.nav.contains(r.target) || r.target.contains(state.nav))) return;
-      if (!state.frame) state.frame = requestAnimationFrame(() => { state.frame = 0; ensure(); });
-    });
-    state.observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+  function scheduleEnsure() {
+    if (!state.frame) state.frame = requestAnimationFrame(() => { state.frame = 0; ensure(); });
+  }
+
+  // 挂载完成后仅观察侧栏内部及其祖先直系子节点 (subtree: false)，完全屏蔽对话区流式吐字变更
+  function syncWatchScope() {
+    if (!state.observer) {
+      state.observer = new MutationObserver(records => {
+        if (state.nav?.isConnected && state.root?.isConnected &&
+            !records.some(r => state.nav.contains(r.target) || r.target.contains(state.nav))) return;
+        scheduleEnsure();
+      });
+    }
+    if (!state.ancestorObserver) {
+      state.ancestorObserver = new MutationObserver(() => {
+        if (!state.nav?.isConnected || !state.root?.isConnected) scheduleEnsure();
+      });
+    }
+    state.observer.disconnect();
+    state.ancestorObserver.disconnect();
+    if (state.nav?.isConnected && state.root?.isConnected) {
+      state.observer.observe(state.nav, { childList: true, subtree: true });
+      for (let el = state.nav.parentElement; el && el !== document.documentElement; el = el.parentElement) {
+        state.ancestorObserver.observe(el, { childList: true, subtree: false });
+      }
+      return;
+    }
+    const fallback = document.body || document.documentElement;
+    if (fallback) state.observer.observe(fallback, { childList: true, subtree: true });
   }
 
   function buildRoot() {
@@ -386,10 +407,11 @@ globalThis.AIPSidebarUI = (() => {
   function closePopups() { menu.closeMenu(undefined, false); selection.closeBatchDialog(false); }
 
   function ensure() {
-    if (!state.root || !state.root.isConnected) { if (mount()) onRoute(); return; }
+    if (!state.root || !state.root.isConnected) { if (mount()) onRoute(); else syncWatchScope(); return; }
     styleNewChat(state.list);
     tagDrawer(state.list);
     placeHandle(state.list);
+    syncWatchScope();
   }
 
   return { mount };

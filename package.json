@@ -1,6 +1,6 @@
 {
   "name": "ai-studio-plus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "type": "module",
   "description": "Google AI Studio 浏览器扩展：原生侧栏内的历史会话时间流、黑白气泡折叠与 GPU 节能。无依赖、无后台服务、无额外权限。",

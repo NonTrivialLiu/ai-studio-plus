@@ -103,6 +103,22 @@
       const rect = user('short').getBoundingClientRect();
       const host = user('short').parentElement.getBoundingClientRect();
       assert(Math.abs(rect.right - host.right) < 1 && rect.width < host.width, '用户气泡较窄且靠右');
+
+      const streamingModel = document.querySelector('#model').cloneNode(true);
+      streamingModel.id = 'streaming-model';
+      document.querySelector('main').append(streamingModel);
+      const modelContent = streamingModel.querySelector('.model-prompt-container');
+      for (let i = 0; i < 60; i++) {
+        const span = document.createElement('span');
+        span.textContent = 'chunk-' + i + ' ';
+        modelContent.appendChild(span);
+      }
+      await nextFrames(2);
+      assert(user('long').hasAttribute('data-aib-collapsed'), '模型高频流式吐字不影响用户气泡折叠状态');
+      assert(getComputedStyle(document.querySelector('#model')).contentVisibility === 'visible', '历史模型轮次不与站点虚拟滚动冲突');
+      assert(getComputedStyle(streamingModel).contentVisibility === 'visible', '末尾正在输出的模型轮次保持可见');
+      assert(getComputedStyle(document.querySelector('#long')).contentVisibility === 'visible', '用户气泡不启用 content-visibility 避免折叠高度误判');
+
       document.querySelector('#result').textContent = results.join('\n') + '\nPASS';
     } catch (error) {
       document.querySelector('#result').textContent = results.join('\n') + '\nFAIL: ' + error.message;
