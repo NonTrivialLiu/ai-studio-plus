@@ -64,7 +64,8 @@ export class Browser {
       '--disable-background-networking',
       '--disable-sync',
       '--mute-audio',
-      `--window-size=${width},${height}`
+      `--window-size=${width},${height}`,
+      ...(process.platform === 'linux' && process.env.CI === 'true' ? ['--no-sandbox', '--disable-dev-shm-usage'] : [])
     ];
     if (extensionDir) args.push(`--disable-extensions-except=${extensionDir}`, `--load-extension=${extensionDir}`);
     args.push('about:blank');
