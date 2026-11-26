@@ -1,0 +1,58 @@
+/* ==========================================================================
+   AI Studio Plus - Performance & Battery Preservation Engine
+   - 彻底切除 macOS / Retina 屏幕下 backdrop-filter 的高额 GPU 采样与模糊卷积计算
+   - 消除无休止的非功能性动画与平滑滚动带来的复合层连续重绘
+   - 最优权衡：保留模型加载指示器 (Spinner)、进度条与打字光标闪烁
+   - 提供浮动层实色底衬兜底，确保模糊滤镜移除后界面元素文字清晰无穿透
+   ========================================================================== */
+
+/* 1. 禁用全局 backdrop-filter，释放 Chrome GPU Process */
+*, *::before, *::after {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* 2. 覆盖半透明浮层背景，确保滤镜移除后文字与界面清晰无遮挡
+      (颜色取站点主题变量，明暗主题各自成立) */
+.mat-toolbar,
+ms-header,
+ms-navbar-v2 .nav-flyout-panel,
+ms-prompt-nav,
+ms-model-parameters,
+.cdk-overlay-pane,
+.mat-mdc-menu-panel,
+.mat-mdc-dialog-container,
+.mat-mdc-select-panel,
+.mat-expansion-panel {
+  background-color: var(--color-v3-surface-container, var(--color-surface, light-dark(#ffffff, #1f1f1f))) !important;
+}
+
+/* 自带圆角面板的浮层：外壳保持透明，免得外壳的方角从面板圆角后面露出来 */
+.cdk-overlay-pane:has(> .mat-mdc-menu-panel),
+.cdk-overlay-pane:has(> .mat-mdc-select-panel),
+.cdk-overlay-pane:has(> .mat-mdc-dialog-container),
+.cdk-overlay-pane:has(> .mat-mdc-tooltip-panel),
+.cdk-overlay-pane:has(> .nav-flyout-panel) {
+  background-color: transparent !important;
+}
+
+/* 3. 禁用平滑滚动，消除滚动时 GPU 复合层的连续重栅格化 (Rasterization) */
+html, body, :root {
+  scroll-behavior: auto !important;
+}
+
+/* 4. 消除高频 CSS 样式过渡 (保留加载动效，杜绝流式输出和输入框打字时的级联重绘) */
+*:not(mat-spinner):not(mat-progress-spinner):not(.mdc-circular-progress):not([role="progressbar"]):not(.loading-indicator):not(.aip-spinner) {
+  transition-duration: 0s !important;
+  transition-delay: 0s !important;
+}
+
+/* 5. 禁用持续消耗 GPU 的无限循环动效与推广组件 */
+ms-promotion,
+ms-banner,
+.sparkle,
+.shimmer,
+.glow-effect,
+.mat-ripple {
+  animation: none !important;
+}

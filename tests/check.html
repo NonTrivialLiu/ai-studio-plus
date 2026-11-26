@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<meta charset="utf-8">
+<title>AI Studio Bubbles 检查</title>
+<link rel="stylesheet" href="../extension/content.css">
+<style>
+  body { font: 16px/24px system-ui; margin: 24px; }
+  main { max-width: 800px; }
+  ms-chat-turn { display: flex; width: 100%; }
+  .chat-turn-container { flex: 1; }
+  .turn-content { line-height: 24px; }
+</style>
+<h1>AI Studio Bubbles 检查</h1>
+<pre id="result">检查中…</pre>
+<main>
+  <ms-chat-turn id="short"><div class="chat-turn-container user render"><div class="user-prompt-container"><div></div><div class="turn-content">短消息 <a href="#result">链接</a></div></div></div></ms-chat-turn>
+  <ms-chat-turn id="media"><div class="chat-turn-container user render"><div class="user-prompt-container"><div></div><div class="turn-content"><img alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" width="40" height="40"></div></div></div></ms-chat-turn>
+  <ms-chat-turn id="long"><div class="chat-turn-container user render"><div class="user-prompt-container"><div style="height:600px"></div><div class="turn-content" style="height:600px">长消息</div></div></div></ms-chat-turn>
+  <ms-chat-turn id="unloaded"><div class="chat-turn-container user render"><div class="user-prompt-container"><div style="height:1000px"></div><div class="turn-content"></div></div></div></ms-chat-turn>
+  <ms-chat-turn id="model"><div class="chat-turn-container model render"><div class="model-prompt-container">模型回答</div></div></ms-chat-turn>
+</main>
+<script src="../extension/content.js"></script>
+<script>
+  (async () => {
+    const results = [];
+    const assert = (condition, label) => {
+      if (!condition) throw Error(label);
+      results.push('✓ ' + label);
+    };
+    const waitUntil = (pred, timeout = 1500, label = '等待超时') => new Promise((resolve, reject) => {
+      const deadline = performance.now() + timeout;
+      const step = () => {
+        try {
+          const value = pred();
+          if (value) return resolve(value);
+        } catch (err) {
+          return reject(err);
+        }
+        if (performance.now() >= deadline) return reject(new Error(label));
+        requestAnimationFrame(step);
+      };
+      requestAnimationFrame(step);
+    });
+    const nextFrames = (count = 2) => new Promise(resolve => {
+      const step = n => (n <= 0 ? resolve() : requestAnimationFrame(() => step(n - 1)));
+      step(count);
+    });
+    const user = id => document.querySelector('#' + id + ' .user');
+    try {
+      await waitUntil(() => user('long').hasAttribute('data-aib-collapsed'), 1500, '初始化长消息折叠');
+      assert(user('short').querySelector('button').hidden, '短消息完整显示');
+      assert(user('media').hasAttribute('data-aib-ready') && user('media').querySelector('button').hidden && getComputedStyle(user('media')).backgroundColor === 'rgb(17, 17, 17)', '纯媒体消息渲染为深色气泡且不折叠');
+      assert(user('long').hasAttribute('data-aib-collapsed'), '长消息默认折叠');
+      assert(!user('unloaded').hasAttribute('data-aib-ready') && !user('unloaded').hasAttribute('data-aib-collapsed'), '未加载正文时保留原生占位且不绘制黑块');
+
+      const unloadedContent = user('unloaded').querySelector('.turn-content');
+      unloadedContent.textContent = '重新加载的正文';
+      await waitUntil(() => user('unloaded').hasAttribute('data-aib-ready') && user('unloaded').hasAttribute('data-aib-collapsed'), 1500, '正文装载后显示折叠气泡');
+      assert(user('unloaded').hasAttribute('data-aib-ready') && user('unloaded').hasAttribute('data-aib-collapsed'), '正文装载后显示折叠气泡');
+
+      unloadedContent.textContent = '';
+      await waitUntil(() => !user('unloaded').hasAttribute('data-aib-ready') && user('unloaded').querySelector('button').hidden, 1500, '正文卸载后气泡与按钮同时退出');
+      assert(!user('unloaded').hasAttribute('data-aib-ready') && user('unloaded').querySelector('button').hidden, '正文卸载后气泡与按钮同时退出');
+
+      assert(user('long').querySelector('.user-prompt-container').clientHeight === 240, '预览高度为 240px');
+      const button = user('long').querySelector('button');
+      assert(button.getAttribute('aria-expanded') === 'false', '折叠时 aria-expanded 为 false');
+      button.click();
+      assert(!user('long').hasAttribute('data-aib-collapsed') && button.textContent === '收起' && button.getAttribute('aria-expanded') === 'true', '点击展开全文且 aria-expanded 切为 true');
+
+      const content = user('long').querySelector('.turn-content');
+      content.replaceWith(content.cloneNode(true));
+      await nextFrames(2);
+      assert(!user('long').hasAttribute('data-aib-collapsed'), '正文重新渲染保留展开状态');
+
+      button.click();
+      await waitUntil(() => user('long').hasAttribute('data-aib-collapsed') && button.getAttribute('aria-expanded') === 'false', 1500, '点击收起');
+      assert(user('long').hasAttribute('data-aib-collapsed') && button.getAttribute('aria-expanded') === 'false', '点击收起并恢复 aria-expanded 为 false');
+
+      const editor = document.createElement('textarea');
+      user('long').append(editor);
+      await waitUntil(() => !user('long').hasAttribute('data-aib-collapsed') && button.hidden, 1500, 'textarea 编辑时完整显示');
+      assert(!user('long').hasAttribute('data-aib-collapsed') && button.hidden, '编辑时完整显示');
+      editor.remove();
+      await waitUntil(() => user('long').hasAttribute('data-aib-collapsed'), 1500, '退出编辑恢复折叠');
+      assert(user('long').hasAttribute('data-aib-collapsed'), '退出编辑恢复折叠');
+
+      const ce = document.createElement('div');
+      ce.setAttribute('contenteditable', 'true');
+      user('long').append(ce);
+      await waitUntil(() => !user('long').hasAttribute('data-aib-collapsed') && button.hidden, 1500, 'contenteditable 编辑时禁用折叠');
+      assert(!user('long').hasAttribute('data-aib-collapsed') && button.hidden, 'contenteditable 编辑时完整显示');
+      ce.remove();
+      await waitUntil(() => user('long').hasAttribute('data-aib-collapsed'), 1500, '退出 contenteditable 编辑恢复折叠');
+
+      const turn = document.querySelector('#long').cloneNode(true);
+      turn.id = 'added';
+      document.querySelector('main').append(turn);
+      await waitUntil(() => user('added').querySelectorAll('.aib-toggle').length === 1, 1500, '新消息添加一个折叠按钮');
+      assert(user('added').querySelectorAll('.aib-toggle').length === 1, '新消息添加一个折叠按钮');
+      assert(!document.querySelector('#model .aib-toggle'), '模型回答保持原样');
+
+      const rect = user('short').getBoundingClientRect();
+      const host = user('short').parentElement.getBoundingClientRect();
+      assert(Math.abs(rect.right - host.right) < 1 && rect.width < host.width, '用户气泡较窄且靠右');
+      document.querySelector('#result').textContent = results.join('\n') + '\nPASS';
+    } catch (error) {
+      document.querySelector('#result').textContent = results.join('\n') + '\nFAIL: ' + error.message;
+    }
+  })();
+</script>
+</html>

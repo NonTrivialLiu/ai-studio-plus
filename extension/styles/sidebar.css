@@ -1,0 +1,868 @@
+/* ==========================================================================
+   AI Studio Plus - Sidebar & History Stream
+   嵌在原生导航 (ms-navbar-v2) 里。数值全部取自官方导航的实测值 (2026-11)：
+     导航项 / 按钮   32px 高，圆角 12px，左右内边距 8px，图标盒 24×18，文字 14px/21px·500
+     搜索框          32px 高，圆角 12px，1px 描边，图标与导航项对齐，文字 14px/21px
+     分组标题        12px/18px·400，大写，字距 0.4px，内边距 4px 8px
+     列表条目        圆角 10px，条目间距 1px
+     菜单            白底 (surface)，1px 描边，圆角 8px，阴影 var(--aip-shadow)；
+                     条目 32px 高、内边距 6px 8px、圆角 4px、文字 14px/20px·500、图标 18px + 8px
+     颜色            --color-v3-* 与 --color-nav-item-* (站点定义在 body 上，自带明暗两套)
+   密度比官方 History 页更紧凑 (会话行 28px)，以便在 204px 宽的侧栏里多显示内容。
+   对齐：搜索与导航文字共用图标列；会话标题与分组标题对齐，多选时为复选框保留空间。
+
+   扩展样式表与页面样式同级别时会让给页面，所以凡是页面自己也有规则的地方
+   (导航里的链接、按钮、输入框) 一律用 !important。
+   ========================================================================== */
+
+body {
+  --aip-text: var(--color-v3-text, light-dark(#1b1b1e, #e3e3e3));
+  --aip-text-var: var(--color-v3-text-var, light-dark(#565b61, #a8abb3));
+  --aip-text-disable: var(--color-v3-text-disable, light-dark(#85898e, #787b82));
+  --aip-hover: var(--color-nav-item-hover, light-dark(#efefef, #2a2b2f));
+  --aip-active: var(--color-nav-item-active, light-dark(#ececef, #32343a));
+  --aip-outline: var(--color-v3-outline-var, light-dark(rgba(215, 216, 218, 0.5), rgba(255, 255, 255, 0.14)));
+  --aip-outline-solid: var(--color-v3-outline, light-dark(#d7d8da, #3e4046));
+  --aip-container: var(--color-v3-button-container, light-dark(#ffffff, #25262b));
+  --aip-container-hover: var(--color-v3-hover, light-dark(#f4f5f5, #32343a));
+  --aip-surface: var(--color-v3-surface-left-nav, light-dark(#fafafa, #19191b));
+  --aip-panel: var(--color-v3-surface, var(--color-v3-surface-container, light-dark(#ffffff, #202124)));
+  --aip-danger: light-dark(#b3261e, #f28b82);
+  --aip-danger-bg: light-dark(rgba(179, 38, 30, 0.08), rgba(242, 139, 130, 0.14));
+  --aip-shadow: light-dark(0 4px 12px rgba(0, 0, 0, 0.08), 0 6px 18px rgba(0, 0, 0, 0.45));
+  --aip-font: Inter, system-ui, sans-serif;
+}
+
+ms-nav-items-main-v2:has(> .aip-history) {
+  --aip-text-column: 45px;    /* 图标列 17 + 图标盒 24 + 间距 4 */
+}
+
+/* 1. "New chat"：原 Playground 入口，结构与图标不动，换成官方容器按钮的表面 */
+ms-nav-items-main-v2 a.aip-new-chat {
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 0 8px !important;
+  gap: 4px !important;
+  border: 1px solid var(--aip-outline) !important;
+  border-radius: 12px !important;
+  background: var(--aip-container) !important;
+  color: var(--aip-text) !important;
+  font-weight: 500 !important;
+  text-decoration: none !important;
+}
+
+ms-nav-items-main-v2 a.aip-new-chat:hover {
+  background: var(--aip-container-hover) !important;
+}
+
+/* 2. 把导航里的弹性高度让给历史流 (原本由 .empty-space 占着)。
+   外层容器自己可滚动：窗口再矮 (或抽屉展开放不下) 时它在自己的盒子里滚，
+   不会盖到排在它后面的其它面板 (如 Voyager 的文件夹面板)。 */
+ms-navbar-v2 nav > ms-nav-items-v2:has(ms-nav-items-main-v2 > .aip-history) {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+ms-navbar-v2 nav > ms-nav-items-v2 > ms-nav-items-main-v2:has(> .aip-history) {
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+ms-navbar-v2 nav:has(.aip-history) > .empty-space {
+  flex-grow: 0;
+  min-height: 8px;
+}
+
+/* 3. 搜索框 (官方 ms-input-field 的样子) 与历史流 */
+.aip-history {
+  position: relative;         /* 底部操作提示的定位参照 */
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0;
+  min-height: 96px;
+  margin: 0;
+}
+
+.aip-search {
+  position: relative;
+  flex: none;
+  box-sizing: border-box;
+  height: 32px;
+  margin: 4px 0 8px;
+  border: 1px solid var(--aip-outline);
+  border-radius: 12px;
+}
+
+.aip-search-icon {
+  position: absolute;
+  top: 7px;
+  left: 11px;
+  width: 18px;
+  height: 18px;
+  color: var(--aip-text-var) !important;
+  pointer-events: none;
+}
+
+.aip-search-input {
+  display: block !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 30px !important;
+  padding: 1px 8px 1px 36px !important;
+  border: 0 !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  color: var(--aip-text) !important;
+  font: 400 14px/21px var(--aip-font) !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.aip-search-input::placeholder {
+  color: var(--aip-text-var);
+  opacity: 1;
+}
+
+.aip-search:focus-within {
+  outline: 2px solid var(--aip-text);
+  outline-offset: -2px;
+}
+
+.aip-search:has(.aip-search-clear:not([hidden])) .aip-search-input {
+  padding-right: 36px !important;
+}
+
+/* 官方输入框右端的 32×32 圆形图标按钮 */
+.aip-search-clear {
+  position: absolute !important;
+  top: 0 !important;
+  right: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 32px !important;
+  height: 32px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: transparent !important;
+  color: var(--aip-text) !important;
+  cursor: pointer;
+}
+
+.aip-search-clear:hover {
+  background: var(--aip-hover) !important;
+}
+
+.aip-search-clear[hidden] {
+  display: none !important;
+}
+
+/* 选择操作栏：入口属于会话列表，搜索框保持独立。 */
+.aip-selection-bar {
+  display: flex;
+  align-items: center;
+  flex: none;
+  box-sizing: border-box;
+  min-width: 0;
+  height: 32px;
+  padding: 0 4px 0 8px;
+  color: var(--aip-text-var);
+  font: 500 12px/18px var(--aip-font);
+}
+
+.aip-selection-bar[hidden] {
+  display: none;
+}
+
+.aip-select-start,
+.aip-selection-exit,
+.aip-selection-delete {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: none !important;
+  height: 28px !important;
+  padding: 0 8px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--aip-text) !important;
+  font: 500 12px/18px var(--aip-font) !important;
+  cursor: pointer;
+}
+
+.aip-selection-exit {
+  width: 28px !important;
+  padding: 0 !important;
+  margin-left: -4px !important;
+}
+
+.aip-selection-exit .material-symbols-outlined {
+  font-size: 18px;
+  line-height: 18px;
+}
+
+.aip-selection-count {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.aip-select-start:hover,
+.aip-selection-exit:hover {
+  background: var(--aip-hover) !important;
+}
+
+.aip-selection-delete:not(:disabled) {
+  color: var(--aip-danger) !important;
+}
+
+.aip-selection-delete:not(:disabled):hover {
+  background: var(--aip-danger-bg) !important;
+}
+
+.aip-selection-delete:disabled,
+.aip-selection-exit:disabled {
+  color: var(--aip-text-disable) !important;
+  cursor: default;
+}
+
+/* 4. 历史列表 */
+.aip-list-frame {
+  position: relative;
+  display: flex;
+  flex: 1 1 0;
+  min-height: 0;
+}
+
+.aip-list-frame .aip-select-start {
+  position: absolute !important;
+  top: 0;
+  right: 6px;
+  z-index: 2;
+  width: 28px;
+  padding: 0 !important;
+  color: var(--aip-text-var) !important;
+}
+
+.aip-list-frame .aip-select-start[hidden] { display: none !important; }
+.aip-list-frame .aip-select-start:disabled { opacity: .4; cursor: default; }
+.aip-list-frame .aip-select-start .material-symbols-outlined { font-size: 18px; line-height: 18px; }
+
+.aip-history-scroll {
+  position: relative;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+}
+
+.aip-history-scroll::-webkit-scrollbar {
+  width: 4px;
+}
+
+.aip-history-scroll::-webkit-scrollbar-thumb {
+  border-radius: 4px;
+  background: var(--aip-outline-solid);
+}
+
+@supports not selector(:is(::-webkit-scrollbar)) {
+  .aip-history-scroll { scrollbar-width: thin; }
+}
+
+.aip-group {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+/* 被搜索过滤空的分组整体隐藏 (作者样式里的 display 会盖掉 hidden 的默认样式，所以要显式写) */
+.aip-group[hidden] {
+  display: none;
+}
+
+.aip-group-title {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-sizing: border-box;
+  padding: 4px 40px 2px 8px;
+  background: var(--aip-surface);
+  color: var(--aip-text-var);
+  font: 400 12px/18px var(--aip-font);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  white-space: nowrap;
+  user-select: none;
+}
+
+.aip-group:first-child .aip-group-title {
+  padding-top: 2px;
+}
+
+.aip-group + .aip-group {
+  margin-top: 8px;
+}
+
+/* 会话行：黑白灰的文字 (官方导航项的次级文字色)，不是链接蓝。
+   --aip-row-bg 同时是行和行尾三点的底色，三点压住标题末尾时不露馅。 */
+.aip-row {
+  --aip-row-bg: transparent;
+  position: relative !important;
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  flex: none !important;
+  height: 28px !important;
+  padding: 0 10px 0 8px !important;
+  border: 0 !important;
+  border-radius: 10px !important;
+  background: var(--aip-row-bg) !important;
+  font: 500 14px/20px var(--aip-font) !important;
+}
+
+.aip-row:hover,
+.aip-row.is-editing,
+.aip-row:has(.aip-row-menu[aria-expanded="true"]) {
+  --aip-row-bg: var(--aip-hover);
+}
+
+.aip-row.is-active {
+  --aip-row-bg: var(--aip-active);
+}
+
+.aip-row.is-pressing {
+  --aip-row-bg: var(--aip-hover);
+}
+
+.aip-row[data-uncertain="true"] {
+  --aip-row-bg: var(--aip-danger-bg);
+}
+
+.aip-history.is-selecting .aip-row:has(.aip-row-checkbox:checked) {
+  --aip-row-bg: var(--aip-active);
+}
+
+.aip-row[hidden] {
+  display: none !important;
+}
+
+.aip-row-link {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+  height: 100% !important;
+  padding: 0 !important;
+  border: 0 !important;
+  background: none !important;
+  color: var(--aip-text-var) !important;
+  font: inherit !important;
+  text-align: left !important;
+  text-decoration: none !important;
+  cursor: pointer;
+}
+
+.aip-row:hover .aip-row-link,
+.aip-row.is-active .aip-row-link,
+.aip-row:has(.aip-row-menu[aria-expanded="true"]) .aip-row-link,
+.aip-history.is-selecting .aip-row:has(.aip-row-checkbox:checked) .aip-row-link {
+  color: var(--aip-text) !important;
+}
+
+.aip-row-link[hidden] {
+  display: none !important;
+}
+
+.aip-row-title {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 行尾三点：悬停 / 键盘焦点 / 菜单展开时出现，压在标题末尾上 (标题末尾渐隐，不重排) */
+.aip-row-menu {
+  position: absolute !important;
+  top: 2px !important;
+  right: 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 24px !important;
+  height: 24px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 50% !important;
+  background: var(--aip-row-bg) !important;
+  color: var(--aip-text-var) !important;
+  opacity: 0;
+  pointer-events: none;
+  cursor: pointer;
+}
+
+.aip-row:hover .aip-row-menu,
+.aip-row:focus-within .aip-row-menu,
+.aip-row:has(.aip-row-menu[aria-expanded="true"]) .aip-row-menu {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+@media (hover: none) {
+  .aip-row .aip-row-menu {
+    opacity: 0.72;
+    pointer-events: auto;
+  }
+}
+
+.aip-row-menu:hover,
+.aip-row-menu[aria-expanded="true"] {
+  background: var(--aip-container-hover) !important;
+  color: var(--aip-text) !important;
+}
+
+.aip-row.is-editing .aip-row-menu {
+  display: none !important;
+}
+
+.aip-row:hover .aip-row-title,
+.aip-row:focus-within .aip-row-title,
+.aip-row:has(.aip-row-menu[aria-expanded="true"]) .aip-row-title {
+  -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent calc(100% - 10px));
+  mask-image: linear-gradient(90deg, #000 calc(100% - 36px), transparent calc(100% - 10px));
+}
+
+.aip-history .material-symbols-outlined,
+.aip-drawer .material-symbols-outlined,
+.aip-drawer-history .material-symbols-outlined,
+.aip-menu .material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+
+.aip-row-menu-icon,
+.aip-drawer-icon,
+.aip-drawer-chevron,
+.aip-search-icon,
+.aip-search-clear > .material-symbols-outlined {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 18px !important;
+  line-height: 18px !important;
+  user-select: none;
+}
+
+/* 多选时只为复选框和文字之间的间隔留出空间。 */
+.aip-history.is-selecting .aip-row {
+  padding-left: 28px !important;
+}
+
+.aip-row-checkbox {
+  display: none;
+  position: absolute;
+  left: 8px;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--aip-text);
+  cursor: pointer;
+}
+
+.aip-history.is-selecting .aip-row-checkbox {
+  display: block;
+}
+
+.aip-history.is-selecting .aip-row-menu {
+  display: none !important;
+}
+
+.aip-history.is-selecting .aip-row-title {
+  -webkit-mask-image: none;
+  mask-image: none;
+}
+
+.aip-drawer-icon {
+  width: 24px !important;     /* 与官方导航项的图标盒同宽，文字才落在 x=45 */
+}
+
+/* 5. 原位重命名：输入框与整行的尺寸、圆角和文字起点对齐。 */
+.aip-row-edit {
+  display: block !important;
+  position: absolute !important;
+  inset: 0 !important;
+  box-sizing: border-box !important;
+  min-width: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  margin: 0 !important;
+  padding: 0 9px 0 7px !important;
+  border: 1px solid var(--aip-text) !important;
+  border-radius: 10px !important;
+  background: var(--aip-row-bg) !important;
+  color: var(--aip-text) !important;
+  font: 500 14px/20px var(--aip-font) !important;
+  text-align: left !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+.aip-row-edit[aria-invalid="true"] {
+  border-color: var(--aip-danger) !important;
+}
+
+.aip-row-edit[aria-busy="true"] {
+  opacity: 0.65;
+  cursor: progress;
+}
+
+/* 6. 状态行 (同时是触底哨兵) */
+.aip-status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  min-height: 24px;
+  padding: 6px 8px;
+  color: var(--aip-text-var);
+  font: 400 12px/18px var(--aip-font);
+}
+
+.aip-history[data-state="error"] .aip-status {
+  color: var(--aip-danger);
+}
+
+.aip-spinner {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border: 1.5px solid var(--aip-outline-solid);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: aip-spin 0.7s linear infinite;
+}
+
+@keyframes aip-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aip-spinner {
+    animation-duration: 2s;
+  }
+}
+
+.aip-spinner[hidden],
+.aip-retry[hidden] {
+  display: none;
+}
+
+.aip-retry {
+  height: 24px !important;
+  padding: 0 8px !important;
+  border: 1px solid var(--aip-outline-solid) !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--aip-text) !important;
+  font: 500 12px/18px var(--aip-font) !important;
+  cursor: pointer;
+}
+
+.aip-retry:hover {
+  background: var(--aip-hover) !important;
+}
+
+/* 7. 操作提示：浮在历史流底部 (贴着抽屉手柄上沿)，几秒后自动消失 */
+.aip-notice {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 2;
+  box-sizing: border-box;
+  margin: 0 0 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--aip-outline-solid);
+  border-radius: 8px;
+  background: var(--aip-panel);
+  box-shadow: var(--aip-shadow);
+  color: var(--aip-text);
+  font: 400 12px/16px var(--aip-font);
+  pointer-events: none;
+}
+
+.aip-notice[data-kind="error"] {
+  color: var(--aip-danger);
+}
+
+.aip-notice[hidden] {
+  display: none !important;
+}
+
+/* 8. Build & Manage 抽屉：历史流下方的一行手柄；展开后原生分组出现在手柄上方，历史流相应让出高度 */
+.aip-drawer {
+  display: flex !important;
+  align-items: center !important;
+  flex: none !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 32px !important;
+  margin: 8px 0 0 !important;
+  padding: 0 8px !important;
+  gap: 4px !important;
+  border: 1px solid transparent !important;
+  border-radius: 12px !important;
+  background: transparent !important;
+  color: var(--aip-text-var) !important;
+  font: 500 14px/21px var(--aip-font) !important;
+  text-align: left !important;
+  cursor: pointer;
+}
+
+.aip-drawer:hover {
+  background: var(--aip-hover) !important;
+  color: var(--aip-text) !important;
+}
+
+.aip-drawer[aria-expanded="true"] {
+  background: var(--aip-active) !important;
+  color: var(--aip-text) !important;
+}
+
+.aip-drawer-label {
+  flex: 1 1 auto;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 抽屉里的原生分组：默认整个收起，展开后按它们原本的样子显示 */
+ms-nav-items-main-v2 .aip-explore-heading,
+ms-nav-items-main-v2 .aip-native-history {
+  display: none !important;
+}
+
+ms-nav-items-main-v2 > .aip-drawer-item {
+  display: none !important;
+}
+
+ms-nav-items-main-v2.aip-drawer-open > .aip-drawer-item {
+  display: flex !important;
+}
+
+ms-nav-items-main-v2.aip-drawer-open > .aip-drawer-item.aip-drawer-title {
+  display: block !important;
+  margin-top: 8px !important;
+}
+
+.aip-drawer-explore {
+  flex-direction: column;
+}
+
+.aip-drawer-explore-title {
+  padding: 4px 8px 2px;
+  color: var(--aip-text-var);
+  font: 400 12px/18px var(--aip-font);
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.aip-drawer-history {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 32px;
+  padding: 0 8px;
+  border-radius: 12px;
+  color: var(--aip-text-var) !important;
+  font: 500 14px/21px var(--aip-font);
+  text-decoration: none !important;
+}
+
+.aip-drawer-history:hover {
+  background: var(--aip-hover);
+  color: var(--aip-text) !important;
+}
+
+.aip-drawer-history .material-symbols-outlined {
+  width: 24px;
+  font-size: 18px;
+  text-align: center;
+}
+
+/* 9. 三点菜单：与官方菜单同一个样子 (token 见文件头的 --aip-*) */
+.aip-menu {
+  position: fixed !important;
+  z-index: 1001;
+  box-sizing: border-box;
+  min-width: min(172px, calc(100vw - 8px));
+  max-width: calc(100vw - 8px);
+  max-height: calc(100vh - 8px);
+  overflow-y: auto;
+  padding: 6px 4px;
+  border: 1px solid var(--aip-outline-solid);
+  border-radius: 8px;
+  background: var(--aip-panel);
+  box-shadow: var(--aip-shadow);
+  color: var(--aip-text);
+  font: 500 14px/20px var(--aip-font);
+}
+
+.aip-menu-item {
+  display: flex !important;
+  align-items: center !important;
+  box-sizing: border-box !important;
+  width: 100% !important;
+  height: 32px !important;
+  margin: 0 !important;
+  padding: 6px 8px !important;
+  gap: 8px !important;
+  border: 0 !important;
+  border-radius: 4px !important;
+  background: transparent !important;
+  color: var(--aip-text) !important;
+  font: 500 14px/20px var(--aip-font) !important;
+  text-align: left !important;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.aip-menu-item:hover,
+.aip-menu-item:focus-visible {
+  background: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08)) !important;
+}
+
+.aip-menu-item[data-action="delete"] {
+  color: var(--aip-danger) !important;
+}
+
+.aip-menu-item[data-action="delete"]:hover,
+.aip-menu-item[data-action="delete"]:focus-visible {
+  background: var(--aip-danger-bg) !important;
+}
+
+.aip-menu-icon {
+  flex: none !important;
+  width: 18px !important;
+  height: 18px !important;
+  font-size: 18px !important;
+  line-height: 18px !important;
+  color: inherit !important;
+  user-select: none;
+}
+
+.aip-menu-text {
+  flex: 1 1 auto;
+}
+
+/* 删除确认：在同一个面板里换成"标题 + 说明 + 两个按钮" */
+.aip-menu:has(> .aip-menu-confirm) {
+  width: 268px;
+}
+
+.aip-menu-confirm {
+  padding: 8px;
+}
+
+.aip-menu-confirm-title {
+  color: var(--aip-text);
+  font: 500 14px/20px var(--aip-font);
+}
+
+.aip-menu-confirm-name {
+  margin-top: 2px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--aip-text);
+  font: 400 13px/18px var(--aip-font);
+}
+
+.aip-menu-confirm-text {
+  margin-top: 4px;
+  color: var(--aip-text-var);
+  font: 400 12px/16px var(--aip-font);
+}
+
+.aip-menu-confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+/* 文字按钮与容器按钮：官方对话框底部那一排的两种形态 */
+.aip-menu-button {
+  height: 28px !important;
+  padding: 0 12px !important;
+  border: 0 !important;
+  border-radius: 8px !important;
+  background: transparent !important;
+  color: var(--aip-text) !important;
+  font: 500 13px/18px var(--aip-font) !important;
+  cursor: pointer;
+}
+
+.aip-menu-button:hover,
+.aip-menu-button:focus-visible {
+  background: light-dark(rgba(0, 0, 0, 0.08), rgba(255, 255, 255, 0.08)) !important;
+}
+
+.aip-menu-button-danger {
+  border: 1px solid color-mix(in srgb, var(--aip-danger) 40%, transparent) !important;
+  background: var(--aip-container) !important;
+  color: var(--aip-danger) !important;
+}
+
+.aip-menu-button-danger:hover,
+.aip-menu-button-danger:focus-visible {
+  background: var(--aip-danger-bg) !important;
+}
+
+/* 10. 键盘焦点：画在圆角内侧，不改变布局 */
+ms-nav-items-main-v2 a.aip-new-chat:focus-visible,
+.aip-drawer-history:focus-visible,
+.aip-row:has(.aip-row-link:focus-visible),
+.aip-row:has(.aip-row-menu:focus-visible),
+.aip-select-start:focus-visible,
+.aip-selection-exit:focus-visible,
+.aip-selection-delete:focus-visible,
+.aip-history-scroll:focus-visible,
+.aip-drawer:focus-visible,
+.aip-search-clear:focus-visible,
+.aip-retry:focus-visible,
+.aip-menu-item:focus-visible,
+.aip-menu-button:focus-visible {
+  outline: 2px solid var(--aip-text) !important;
+  outline-offset: -2px !important;
+}
+
+.aip-row-checkbox:focus-visible {
+  outline: 2px solid var(--aip-text) !important;
+  outline-offset: 2px !important;
+}
+
+.aip-row-link:focus-visible,
+.aip-row-menu:focus-visible {
+  outline: none !important;
+}
+
+/* 11. 侧栏收起时 (整体宽度为 0) 历史流与抽屉手柄随之隐藏 */
+ms-navbar-v2 .nav-content:not(.expanded) .aip-history,
+ms-navbar-v2 .nav-content:not(.expanded) .aip-drawer {
+  display: none !important;
+}
+
+/* 12. 隐藏侧栏底部的升级推广卡片 */
+ms-navbar-v2 ms-navbar-promo-card {
+  display: none !important;
+}

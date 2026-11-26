@@ -1,0 +1,125 @@
+/*
+ * 仿 AI Studio 导航的布局参数 (数值取自 2026-11 线上实测)，只用于验证扩展嵌入后的布局。
+ * 主题变量同样定义在 body 上，明暗两套由 light-dark() 切换。
+ */
+/* 与线上一致：主题由 body 上的类决定，light-dark() 据此取值 */
+body.light-theme { color-scheme: light; }
+body.dark-theme { color-scheme: dark; }
+html, body { height: 100%; margin: 0; }
+body {
+  --color-nav-item-active: light-dark(#ececef, #2a2a2a);
+  --color-nav-item-hover: light-dark(#efefef, #2a2a2a);
+  --color-v3-button-container: light-dark(#fff, #323232);
+  --color-v3-outline-var: light-dark(#d7d8da80, #262626);
+  --color-v3-surface-container: light-dark(#fff, #1f1f1f);
+  --color-v3-surface-left-nav: light-dark(#fafafa, #191919);
+  --color-v3-text: light-dark(#1b1b1e, #d4d4d4);
+  --color-v3-text-disable: light-dark(#85898e, #575757);
+  --color-v3-text-var: light-dark(#565b61, #8c8c8c);
+  --color-surface: light-dark(#f9f9fc, #131314);
+  background: var(--color-surface);
+  color: var(--color-v3-text);
+  font: 14px/21px Inter, sans-serif;
+}
+
+ms-app { display: flex; height: 100vh; }
+ms-navbar-v2 { display: block; flex: none; }
+
+.nav-content {
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+  width: 220px;
+  height: 100vh;
+  padding: 0 8px;
+  overflow: hidden auto;
+  background: var(--color-v3-surface-left-nav);
+  border-right: 1px solid var(--color-v3-outline-var);
+}
+
+.nav-content.collapsed { width: 0; padding: 0; }
+
+.navbar-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  box-sizing: border-box;
+  height: 64px;
+  padding: 16px 0;
+  position: sticky;
+  top: 0;
+  background: inherit;
+}
+
+.navbar-header .logo-wrapper { padding: 0 8px; color: inherit; text-decoration: none; }
+.navbar-header .logo-wrapper span { display: inline-block; width: 140px; height: 20px; }
+
+nav,
+ms-nav-items-v2 { display: flex; flex-direction: column; }
+nav { flex: 1 1 0; flex-shrink: 0; }
+ms-nav-items-v2 { flex-shrink: 1; }
+
+ms-nav-items-main-v2,
+ms-nav-items-playground-v2,
+ms-nav-items-build-v2 {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.section-header {
+  padding: 4px 8px;
+  margin-top: 16px;
+  color: var(--color-v3-text-disable);
+  font-size: 12px;
+  line-height: 18px;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+  user-select: none;
+}
+
+.section-header:first-child { margin-top: 0; }
+
+a.ms-button-borderless {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  box-sizing: border-box;
+  height: 32px;
+  padding: 0 8px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  color: var(--color-v3-text-var);
+  text-decoration: none;
+  font-weight: 500;
+}
+
+a.ms-button-borderless:hover { background: var(--color-nav-item-hover); }
+a.ms-button-borderless.active { background: var(--color-nav-item-active); color: var(--color-v3-text); }
+
+.material-symbols-outlined { display: inline-block; width: 18px; height: 18px; overflow: hidden; font: 18px/18px sans-serif; color: transparent; }
+/* 与线上一致：导航里的普通链接会被站点样式染成链接蓝。扩展的样式必须盖得过它。 */
+ms-navbar-v2 a { color: #2483e2; font-weight: 500; text-decoration: none; }
+ms-navbar-v2 button { font: 400 13px/20px sans-serif; color: #1b1b1e; background: #fff; border: 1px solid #999; border-radius: 4px; padding: 4px 6px; }
+ms-navbar-v2 input { font: 400 13px/20px sans-serif; color: #1b1b1e; background: #fff; border: 1px solid #999; border-radius: 4px; padding: 4px 6px; }
+.nav-item-main-text { flex: 1 1 0; white-space: nowrap; }
+
+.empty-space { flex: 1 1 0; }
+
+.bottom-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 16px;
+  position: sticky;
+  bottom: 0;
+  background: inherit;
+}
+
+.aip-fixture-h-36 { height: 36px; }
+.aip-fixture-h-82 { height: 82px; }
+.aip-fixture-h-48 { height: 48px; }
+.aip-fixture-h-32 { display: flex; gap: 8px; height: 32px; }
+.aip-fixture-h-32 .icon-box { flex: 1 1 0; }
+
+main { flex: 1 1 auto; min-width: 0; padding: 24px; }
