@@ -1,0 +1,5 @@
+blank_issues_enabled: true
+contact_links:
+  - name: Architecture & Developer Guide
+    url: https://github.com/NonTrivialLiu/ai-studio-plus/blob/main/CONTRIBUTING.md
+    about: Read the contributor guide before opening a pull request

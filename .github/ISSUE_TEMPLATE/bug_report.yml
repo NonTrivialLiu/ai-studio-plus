@@ -1,0 +1,67 @@
+name: Bug Report
+description: Report an issue with AI Studio Plus on Google AI Studio
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for helping improve **AI Studio Plus**! Please check existing issues before opening a new one.
+
+  - type: input
+    id: browser
+    attributes:
+      label: Browser & OS
+      description: e.g. Google Chrome 145 / Edge 145 on macOS 15 / Windows 11
+      placeholder: Chrome 145 on macOS 15
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Extension Version
+      description: Found in chrome://extensions
+      placeholder: "1.0.0"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: theme
+    attributes:
+      label: AI Studio Theme
+      options:
+        - Light
+        - Dark
+        - System
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce
+      description: Clear steps to trigger the issue
+      placeholder: |
+        1. Open Google AI Studio...
+        2. Hover/click...
+        3. Observe...
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected_actual
+    attributes:
+      label: Expected vs Actual Behavior
+      description: What did you expect to happen, and what happened instead?
+    validations:
+      required: true
+
+  - type: textarea
+    id: diagnostics
+    attributes:
+      label: Console Errors or Diagnostic Output (Optional)
+      description: Any errors from DevTools Console or `tests/inspect.js` (remove any private prompt titles if needed).
+      render: text
+    validations:
+      required: false

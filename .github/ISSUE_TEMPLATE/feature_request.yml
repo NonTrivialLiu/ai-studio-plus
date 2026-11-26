@@ -1,0 +1,33 @@
+name: Feature Request
+description: Suggest an improvement or new capability for AI Studio Plus
+title: "[Feat]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        AI Studio Plus aims to stay lightweight, zero-permission, and faithful to Google AI Studio's native UI.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem Statement
+      description: What workflow friction or missing capability are you running into?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed UX / Behavior
+      description: Describe how you expect this to look and behave in AI Studio.
+    validations:
+      required: true
+
+  - type: checkboxes
+    id: alignment
+    attributes:
+      label: Scope Alignment
+      options:
+        - label: Works without extra Chrome permissions, background workers, or external servers
+          required: false
