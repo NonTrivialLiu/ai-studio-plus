@@ -54,6 +54,16 @@ npm run debug:cdp console   # Stream console.* logs and uncaught exceptions in r
 
 For real-site write tests (rename, copy, delete), always use a clearly disposable test prompt and clean it up afterward.
 
+### Regenerating README Screenshots & GIFs
+To refresh the Light/Dark screenshots and animated demos in `docs/assets/` against the real Google AI Studio interface:
+
+```bash
+npm run dev:chrome          # Ensure you are signed in to aistudio.google.com
+npm run record:demos        # Captures 2x HiDPI assets with full privacy isolation
+```
+
+[`scripts/record-demos.mjs`](scripts/record-demos.mjs) opens a temporary tab, intercepts `MakerSuiteService/*` via CDP `Fetch.enable` to inject synthetic history and block any server writes, masks account switcher metadata (`Alex Chen`), verifies zero email/real-title leaks before capture, and encodes `docs/assets/*.png` and `*.gif` via `ffmpeg`.
+
 ---
 
 ## Project Structure & Coding Standards

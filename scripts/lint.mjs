@@ -87,6 +87,7 @@ function checkJsonFiles() {
   for (const war of manifest.web_accessible_resources || []) {
     for (const f of war.resources || []) expectedFiles.add(f);
   }
+  for (const f of Object.values(manifest.icons || {})) expectedFiles.add(f);
   for (const file of expectedFiles) {
     if (!existsSync(join(EXTENSION, file))) {
       fail('extension/manifest.json', `声明的资源不存在：extension/${file}，请先运行 npm run build。`);

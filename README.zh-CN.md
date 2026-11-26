@@ -1,16 +1,52 @@
 <div align="center">
 
-# AI Studio Plus
+<img src="docs/assets/logo.png" width="108" height="108" alt="AI Studio Plus" />
 
-**将 Google AI Studio 左侧栏升级为可搜索、可多选、无限滚动的原生会话工作区，并附带用户消息折叠与 GPU / 续航优化。**
+<h1>AI Studio Plus</h1>
 
-[English](README.md) · [简体中文](README.zh-CN.md)
+<p><strong>将 Google AI Studio 左侧栏升级为可搜索、可多选、无限滚动的原生会话工作区，并附带用户消息折叠与 GPU / 续航优化。</strong></p>
 
-[![CI](https://github.com/NonTrivialLiu/ai-studio-plus/actions/workflows/build.yml/badge.svg)](https://github.com/NonTrivialLiu/ai-studio-plus/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/NonTrivialLiu/ai-studio-plus?label=Release)](https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Manifest V3](https://img.shields.io/badge/Manifest-V3-green.svg)](extension/manifest.json)
-[![Zero Dependencies](https://img.shields.io/badge/Dependencies-Zero-brightgreen.svg)](package.json)
+<p>
+  <a href="README.md"><img src="https://img.shields.io/badge/English-30363d?style=for-the-badge" alt="English" /></a>
+  <a href="README.zh-CN.md"><img src="https://img.shields.io/badge/%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87-1a73e8?style=for-the-badge" alt="简体中文" /></a>
+</p>
+
+<p>
+  <a href="https://github.com/NonTrivialLiu/ai-studio-plus/actions/workflows/build.yml"><img src="https://img.shields.io/github/actions/workflow/status/NonTrivialLiu/ai-studio-plus/build.yml?branch=main&style=flat-square&logo=githubactions&logoColor=white&label=CI" alt="CI" /></a>
+  <a href="https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest"><img src="https://img.shields.io/github/v/release/NonTrivialLiu/ai-studio-plus?style=flat-square&logo=github&label=Release&color=1a73e8" alt="Latest Release" /></a>
+  <a href="extension/manifest.json"><img src="https://img.shields.io/badge/Chrome%20%7C%20Edge-Manifest%20V3-0f9d58?style=flat-square&logo=googlechrome&logoColor=white" alt="Manifest V3" /></a>
+  <a href="package.json"><img src="https://img.shields.io/badge/Dependencies-Zero-2ea44f?style=flat-square" alt="零运行时依赖" /></a>
+  <a href="extension/manifest.json"><img src="https://img.shields.io/badge/Permissions-Zero-2ea44f?style=flat-square" alt="零额外权限" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue?style=flat-square" alt="MIT License" /></a>
+</p>
+
+<p>
+  <a href="https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip">
+    <img src="https://img.shields.io/badge/下载最新发行版-ZIP-1a73e8?style=for-the-badge&logo=googlechrome&logoColor=white" alt="下载最新发行版" />
+  </a>
+</p>
+
+<p>
+  <sub>
+    <a href="#实机演示">实机演示</a> &nbsp;&bull;&nbsp;
+    <a href="#核心功能">核心功能</a> &nbsp;&bull;&nbsp;
+    <a href="#安装指南">安装指南</a> &nbsp;&bull;&nbsp;
+    <a href="#快捷键与交互手势">快捷键</a> &nbsp;&bull;&nbsp;
+    <a href="#隐私与安全承诺">隐私承诺</a> &nbsp;&bull;&nbsp;
+    <a href="#参与贡献与开源协议">参与贡献</a>
+  </sub>
+</p>
+
+<br />
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/preview-dark.png" />
+  <source media="(prefers-color-scheme: light)" srcset="docs/assets/preview-light.png" />
+  <img src="docs/assets/preview-light.png" width="94%" alt="AI Studio Plus 界面预览" />
+</picture>
+
+<br />
+<sub>随 GitHub 明暗主题自动切换预览 &mdash; 原生融入 Google AI Studio 设计体系，零冗余干扰。</sub>
 
 </div>
 
@@ -20,20 +56,78 @@
 
 Google AI Studio 原生侧栏默认不展示历史对话列表，查找或整理历史对话需要跳转到单独的 History 页面；长提问气泡占满屏幕，且大量毛玻璃与过渡动画在笔记本上容易拉高 GPU 功耗。
 
-**AI Studio Plus** 以零额外权限、零后台常驻、零第三方服务器的方式，在保留原生设计语言与明暗主题的前提下补齐上述体验。
+**AI Studio Plus** 以 **零额外权限**、**零后台常驻**、**零运行时依赖** 与 **零第三方服务器** 的方式，在完整保留原生明暗主题体验的前提下一次补齐上述能力。
+
+---
+
+## 实机演示
+
+<div align="center">
+
+### 1. 无限历史滚动、即时搜索、多选整理与长消息折叠
+
+<img src="docs/assets/demo-sidebar.gif" width="92%" alt="AI Studio Plus 侧栏历史、搜索、多选与气泡折叠演示" />
+
+<br />
+<sub>浅色主题下展示按日分组历史流、跨分页即时搜索、行操作菜单、批量回收站与用户长消息一键折叠。</sub>
+
+<br /><br />
+
+### 2. 深色主题与左右栏悬浮预览 / 图钉固定
+
+<img src="docs/assets/demo-peek-dark.gif" width="92%" alt="AI Studio Plus 深色主题与左右栏悬浮预览演示" />
+
+<br />
+<sub>左导航或右侧 <em>Run settings</em> 收起后，悬停切换按钮即可悬浮预览（不挤压对话宽度），点击图钉图标即可固定展开。</sub>
+
+</div>
 
 ---
 
 ## 核心功能
 
-- **原生融合的无限历史流** — 按本地日历日自动分组（*Today*、*Yesterday*、*Previous 7 days*、*Previous 30 days*、*Earlier*），滚动触底自动加载更早记录，点击即站内切换（不整页刷新）。
-- **全量历史即时搜索** — 输入关键词即时过滤已加载对话，并在后台自动拉取尚未加载的早期分页，直到命中或拉取完毕。
-- **高效行级操作** — 单击切换、双击或按 `F2` 原位重命名（兼容中文输入法组字）；行尾 `⋮` 与右键菜单支持 **Rename**、**Share**（调用原生 Google Drive 分享面板）、**Make a copy**、**Select** 与 **Delete**。
-- **多选与批量移入回收站** — 长按会话行（约 `500ms`）或点击列表顶部的选择图标进入多选；搜索过滤不会丢失已勾选项，确认后逐项安全移入回收站。
-- **左右栏悬浮预览** — 原生导航或右侧 *Run settings* 收起时，鼠标悬停切换按钮即可临时覆盖预览（不挤压正文宽度），点击图钉图标可固定展开；支持 `⌘B` / `Ctrl+B` 快捷开关左栏。
-- **清爽底部抽屉与扩展共存** — 将 *Explore / Build / Manage* 收纳进可向上展开的底部抽屉，隐藏升级推广卡片，并与 Voyager 等其它扩展和谐共存。
-- **深色用户气泡与长消息折叠** — 用户消息右对齐呈现，高度超过 `300px` 时自动折叠为 `240px` 渐隐预览，一键展开或收起，并保留站点的离屏虚拟占位。
-- **GPU 与续航优化** — 移除高开销的全局 `backdrop-filter` 毛玻璃（替换为明暗主题匹配的实色面板）并精简非功能性持续动画，同时保留加载指示器。
+<table>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>&#x1F4C5; 原生融合的无限历史流</h3>
+      <p>按本地日历日自动分组（<em>Today</em>、<em>Yesterday</em>、<em>Previous 7 days</em>、<em>Previous 30 days</em>、<em>Earlier</em>），滚动触底自动加载更早记录，点击即站内切换，无需整页刷新。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>&#x1F50D; 全量历史即时搜索</h3>
+      <p>输入关键词即时过滤已加载对话，并在后台自动翻页拉取更早记录，直到命中结果或拉取完毕。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>&#x26A1; 高效原位与菜单操作</h3>
+      <p>单击切换、双击或按 <code>F2</code> 原位重命名（兼容中文输入法组字）；<code>&#x22EE;</code> 与右键菜单支持 <strong>Rename</strong>、<strong>Share</strong>（原生 Google Drive 面板）、<strong>Make a copy</strong>、<strong>Select</strong> 与 <strong>Delete</strong>。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>&#x2611;&#xFE0F; 多选与批量移入回收站</h3>
+      <p>长按会话行（约 <code>500ms</code>）或点击列表顶部的选择图标进入多选；搜索过滤不丢勾选项，确认后逐项安全移入回收站。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>&#x1F4CC; 左右栏悬浮预览与固定</h3>
+      <p>左侧导航或右侧 <em>Run settings</em> 收起时，悬停切换按钮即可临时覆盖预览而不挤压正文；点击图钉固定，或按 <code>&#x2318;B</code> / <code>Ctrl+B</code> 快捷开关。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>&#x1F9E9; 清爽底部抽屉与扩展共存</h3>
+      <p>将 <em>Explore / Build / Manage</em> 收纳进可向上展开的底部抽屉，隐藏升级推广卡片，并与 Voyager 等其它扩展和谐共存。</p>
+    </td>
+  </tr>
+  <tr>
+    <td width="50%" valign="top">
+      <h3>&#x1F4AC; 深色用户气泡与长消息折叠</h3>
+      <p>用户消息右对齐呈现，高度超过 <code>300px</code> 时自动折叠为 <code>240px</code> 渐隐预览，一键展开或收起，并保留站点的离屏虚拟占位。</p>
+    </td>
+    <td width="50%" valign="top">
+      <h3>&#x1F50B; GPU 与续航优化</h3>
+      <p>移除高开销的全局 <code>backdrop-filter</code> 毛玻璃（替换为主题匹配的实色面板）并精简非功能性持续动画，同时保留加载指示器。</p>
+    </td>
+  </tr>
+</table>
 
 ---
 
@@ -43,7 +137,7 @@ Google AI Studio 原生侧栏默认不展示历史对话列表，查找或整理
 
 ### 方式一：下载预打包发行版（推荐）
 
-1. 下载最新发行压缩包：[**AI-Studio-Plus-WebExtension.zip**](https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip)
+1. 下载最新发行压缩包：[**AI-Studio-Plus-WebExtension.zip**](https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip)。
 2. 将压缩包解压到一个**长期保留**的本地文件夹（加载后请勿删除该文件夹）。
 3. 在浏览器地址栏打开扩展管理页：
    - Chrome / Arc / Brave：`chrome://extensions`
@@ -54,7 +148,7 @@ Google AI Studio 原生侧栏默认不展示历史对话列表，查找或整理
 
 ### 方式二：从源码构建
 
-需要 **Node.js >= 22**：
+需要 **Node.js &ge; 22**（零运行时依赖）：
 
 ```bash
 git clone https://github.com/NonTrivialLiu/ai-studio-plus.git
@@ -66,7 +160,7 @@ npm run build
 
 ### 如何更新
 
-下载新版压缩包覆盖解压到原目录（或执行 `git pull && npm run build`），在 `chrome://extensions` 点击 **AI Studio Plus** 卡片上的 **刷新（↻）** 按钮，然后刷新 AI Studio 页面即可。
+下载新版压缩包覆盖解压到原目录（或执行 `git pull && npm run build`），在 `chrome://extensions` 点击 **AI Studio Plus** 卡片上的 **刷新（&#x21BB;）** 按钮，然后刷新 AI Studio 页面即可。
 
 ---
 

@@ -38,7 +38,11 @@ test('scripts/package.mjs 生成有效归档且仅包含 manifest.json 声明文
   for (const war of manifest.web_accessible_resources || []) {
     for (const file of war.resources || []) expected.add(file);
   }
+  for (const file of Object.values(manifest.icons || {})) expected.add(file);
 
   assert.deepStrictEqual(entries, Array.from(expected).sort());
+  for (const icon of ['icons/icon-16.png', 'icons/icon-48.png', 'icons/icon-128.png']) {
+    assert.ok(entries.includes(icon), `归档必须包含图标 ${icon}`);
+  }
   assert.equal(entries.some(name => name.startsWith('src/') || name.startsWith('styles/')), false, '归档不得包含 src/ 或 styles/');
 });

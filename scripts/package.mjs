@@ -21,6 +21,7 @@ function collectManifestFiles(manifest) {
   for (const res of manifest.web_accessible_resources || []) {
     for (const file of res.resources || []) files.add(file);
   }
+  for (const file of Object.values(manifest.icons || {})) files.add(file);
   return Array.from(files);
 }
 
