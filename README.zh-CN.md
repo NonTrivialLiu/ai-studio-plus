@@ -21,8 +21,12 @@
 </p>
 
 <p>
+  <a href="https://microsoftedge.microsoft.com/addons/detail/eifhmhfhjbjngdiekafiladfkegeapbj">
+    <img src="https://img.shields.io/badge/Edge_%E5%95%86%E5%BA%97-%E4%B8%80%E9%94%AE%E5%AE%89%E8%A3%85-0078d7?style=for-the-badge&logo=microsoftedge&logoColor=white" alt="Microsoft Edge 商店一键安装" />
+  </a>
+  &nbsp;
   <a href="https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip">
-    <img src="https://img.shields.io/badge/下载最新发行版-ZIP-1a73e8?style=for-the-badge&logo=googlechrome&logoColor=white" alt="下载最新发行版" />
+    <img src="https://img.shields.io/badge/%E4%B8%8B%E8%BD%BD%E5%8F%91%E8%A1%8C%E7%89%88-ZIP-1a73e8?style=for-the-badge&logo=googlechrome&logoColor=white" alt="下载最新发行版" />
   </a>
 </p>
 
@@ -135,11 +139,11 @@ Google AI Studio 原生侧栏默认不展示历史对话列表，查找或整理
 
 全面支持 **Microsoft Edge**、**Google Chrome**、**Brave**、**Arc**、**Vivaldi**、**Opera** 等所有 Chromium 内核浏览器，生效域名为 `aistudio.google.com` 与 `aistudio.google.cn`。
 
-| 浏览器 | 立即可用方案（全浏览器通用） | 应用商店渠道 |
+| 浏览器 | 推荐安装方式 | 备选方案 |
 |---|---|---|
-| **Microsoft Edge** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`edge://extensions`） | Edge Add-ons *（审核上架中）* |
-| **Google Chrome** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`chrome://extensions`） | 暂未上架 Chrome 商店 &mdash; 请用方式一（30 秒搞定） |
-| **Brave / Arc / Vivaldi / Opera** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`chrome://extensions`） | 兼容方式一发行包 |
+| **Microsoft Edge** | [**Microsoft Edge Add-ons 商店**](https://microsoftedge.microsoft.com/addons/detail/eifhmhfhjbjngdiekafiladfkegeapbj) *（一键安装 · 自动更新）* | [方式一：发行版 ZIP](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`edge://extensions`） |
+| **Google Chrome** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`chrome://extensions`） | 暂未上架 Chrome 商店 &mdash; 方式一约 30 秒搞定 |
+| **Brave / Arc / Vivaldi / Opera** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`chrome://extensions`） | 方式三：从源码构建 |
 
 ### 方式一：下载预打包发行版（全浏览器通用 · 无需等待商店审核）
 
@@ -170,9 +174,9 @@ Google AI Studio 原生侧栏默认不展示历史对话列表，查找或整理
 
 </details>
 
-### 方式二：Microsoft Edge Add-ons 商店 *（审核上架中）*
+### 方式二：Microsoft Edge Add-ons 官方商店 *（一键安装）*
 
-我们正在提交 **Microsoft Edge Add-ons** 官方商店（届时 Edge 用户可一键安装并自动更新）。在商店审核期间，或如果你使用的是 **Chrome、Brave、Arc、Vivaldi、Opera** 等其它浏览器，请直接使用上方的 **方式一**，功能与版本完全一致。
+现已正式上架 [**Microsoft Edge Add-ons 官方商店**](https://microsoftedge.microsoft.com/addons/detail/eifhmhfhjbjngdiekafiladfkegeapbj)——Edge 用户直接点击「获取 / Get」即可一键安装并自动接收后续更新（无需开启开发人员模式）。若使用 **Chrome、Brave、Arc、Vivaldi、Opera** 等其它 Chromium 浏览器，直接采用上方的 **方式一** 即可，功能完全一致。
 
 ### 方式三：从源码构建
 

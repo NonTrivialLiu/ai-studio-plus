@@ -21,8 +21,12 @@
 </p>
 
 <p>
+  <a href="https://microsoftedge.microsoft.com/addons/detail/eifhmhfhjbjngdiekafiladfkegeapbj">
+    <img src="https://img.shields.io/badge/Microsoft_Edge-Add--ons_Store-0078d7?style=for-the-badge&logo=microsoftedge&logoColor=white" alt="Install from Microsoft Edge Add-ons" />
+  </a>
+  &nbsp;
   <a href="https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip">
-    <img src="https://img.shields.io/badge/Download_Latest_Release-ZIP-1a73e8?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Download Latest Release" />
+    <img src="https://img.shields.io/badge/Download_Release-ZIP-1a73e8?style=for-the-badge&logo=googlechrome&logoColor=white" alt="Download Latest Release ZIP" />
   </a>
 </p>
 
@@ -135,11 +139,11 @@ Google AI Studio's default navigation tucks your recent prompts away on a separa
 
 Works on **Microsoft Edge**, **Google Chrome**, **Brave**, **Arc**, **Vivaldi**, **Opera**, and any other Chromium-based browser on `aistudio.google.com` and `aistudio.google.cn`.
 
-| Browser | Instant Manual Install (Recommended Today) | Extension Store |
+| Browser | Recommended Install | Alternative |
 |---|---|---|
-| **Microsoft Edge** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`edge://extensions`) | Edge Add-ons *(In Review / Coming Soon)* |
-| **Google Chrome** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`chrome://extensions`) | Not listed yet &mdash; use Option 1 (takes ~30s) |
-| **Brave / Arc / Vivaldi / Opera** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`chrome://extensions`) | Compatible with Option 1 ZIP |
+| **Microsoft Edge** | [**Microsoft Edge Add-ons Store**](https://microsoftedge.microsoft.com/addons/detail/eifhmhfhjbjngdiekafiladfkegeapbj) *(1-Click & Auto-Update)* | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`edge://extensions`) |
+| **Google Chrome** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`chrome://extensions`) | Not on Chrome Web Store yet (~30s via ZIP) |
+| **Brave / Arc / Vivaldi / Opera** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`chrome://extensions`) | Build from source (Option 3) |
 
 ### Option 1: Install from Release ZIP *(All Browsers &bull; No Store Wait)*
 
@@ -170,9 +174,9 @@ Works on **Microsoft Edge**, **Google Chrome**, **Brave**, **Arc**, **Vivaldi**,
 
 </details>
 
-### Option 2: Microsoft Edge Add-ons *(In Review / Coming Soon)*
+### Option 2: Microsoft Edge Add-ons *(1-Click Install)*
 
-We are submitting **AI Studio Plus** to **Microsoft Edge Add-ons** (one-click install with automatic updates on Edge). Until store review completes — and for **Chrome, Brave, Arc, Vivaldi, and Opera** users — **Option 1** gives you the exact same verified build right away.
+Available live on the official [**Microsoft Edge Add-ons Store**](https://microsoftedge.microsoft.com/addons/detail/eifhmhfhjbjngdiekafiladfkegeapbj) &mdash; click **Get** to install with automatic background updates on Edge (no Developer mode needed). Using **Chrome, Brave, Arc, Vivaldi, or Opera**? Use **Option 1** above for the exact same build.
 
 ### Option 3: Build from Source
 
