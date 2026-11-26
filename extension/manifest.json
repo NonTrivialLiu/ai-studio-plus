@@ -1,8 +1,8 @@
 {
   "manifest_version": 3,
   "name": "AI Studio Plus",
-  "version": "1.0.1",
-  "description": "All-in-one enhancement for Google AI Studio: native infinite history sidebar, temporal grouping, dark user bubbles, folding, and battery/GPU performance optimizations.",
+  "version": "1.0.2",
+  "description": "Searchable infinite history sidebar, fast actions, hover-to-peek, smart user bubble folding, and GPU relief for Google AI Studio.",
   "icons": {
     "16": "icons/icon-16.png",
     "48": "icons/icon-48.png",

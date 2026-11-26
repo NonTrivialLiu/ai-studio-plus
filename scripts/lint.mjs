@@ -80,6 +80,9 @@ function checkJsonFiles() {
   if (pkg.version !== manifest.version) {
     fail('extension/manifest.json', `version (${manifest.version}) 与 package.json (${pkg.version}) 不一致，请同步两者。`);
   }
+  if (typeof manifest.description !== 'string' || manifest.description.length === 0 || manifest.description.length > 132) {
+    fail('extension/manifest.json', `description 长度须在 1~132 字符以内以符合 Chrome/Edge 商店规范（当前 ${manifest.description?.length ?? 0} 字符）。`);
+  }
   const expectedFiles = new Set();
   for (const cs of manifest.content_scripts || []) {
     for (const f of [...(cs.js || []), ...(cs.css || [])]) expectedFiles.add(f);
