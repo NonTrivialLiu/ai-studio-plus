@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "AI Studio Plus",
+    "description": "扩展显示名称。"
+  },
+  "extDesc": {
+    "message": "为 Google AI Studio 带来可搜索无限历史侧栏、批量管理、左右栏悬浮预览、长消息折叠与 GPU/续航优化。",
+    "description": "扩展简短描述（不超过 132 字符）。"
+  }
+}

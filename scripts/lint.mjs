@@ -74,15 +74,52 @@ function hasDocblockHeader(source) {
   return withoutShebang.trimStart().startsWith('/**');
 }
 
+function checkManifestLocales(manifest) {
+  const localeFiles = globSync('_locales/*/messages.json', { cwd: EXTENSION }).sort();
+  if (manifest.default_locale) {
+    const defaultPath = `_locales/${manifest.default_locale}/messages.json`;
+    if (!existsSync(join(EXTENSION, defaultPath))) {
+      fail('extension/manifest.json', `声明了 default_locale="${manifest.default_locale}"，但缺少 extension/${defaultPath}。`);
+    }
+  } else if (localeFiles.length) {
+    fail('extension/manifest.json', '存在 _locales/ 目录时必须声明 default_locale。');
+  }
+
+  const msgKey = value => /^__MSG_([A-Za-z0-9_@]+)__$/.exec(String(value || ''))?.[1] || null;
+  const nameKey = msgKey(manifest.name);
+  const descKey = msgKey(manifest.description);
+
+  if (!descKey && (typeof manifest.description !== 'string' || manifest.description.length === 0 || manifest.description.length > 132)) {
+    fail('extension/manifest.json', `description 长度须在 1~132 字符以内以符合 Chrome/Edge 商店规范（当前 ${manifest.description?.length ?? 0} 字符）。`);
+  }
+
+  for (const rel of localeFiles) {
+    let messages;
+    try {
+      messages = JSON.parse(readFileSync(join(EXTENSION, rel), 'utf8'));
+    } catch (err) {
+      fail(`extension/${rel}`, `JSON 解析失败：${err.message}`);
+      continue;
+    }
+    if (nameKey && !messages[nameKey]?.message) {
+      fail(`extension/${rel}`, `缺少 manifest.name 引用的词条 ${nameKey}。`);
+    }
+    if (descKey) {
+      const text = messages[descKey]?.message;
+      if (typeof text !== 'string' || text.length === 0 || text.length > 132) {
+        fail(`extension/${rel}`, `${descKey} 长度须在 1~132 字符以内以符合 Chrome/Edge 商店规范（当前 ${text?.length ?? 0} 字符）。`);
+      }
+    }
+  }
+}
+
 function checkJsonFiles() {
   const pkg = JSON.parse(readFileSync(join(ROOT, 'package.json'), 'utf8'));
   const manifest = JSON.parse(readFileSync(join(EXTENSION, 'manifest.json'), 'utf8'));
   if (pkg.version !== manifest.version) {
     fail('extension/manifest.json', `version (${manifest.version}) 与 package.json (${pkg.version}) 不一致，请同步两者。`);
   }
-  if (typeof manifest.description !== 'string' || manifest.description.length === 0 || manifest.description.length > 132) {
-    fail('extension/manifest.json', `description 长度须在 1~132 字符以内以符合 Chrome/Edge 商店规范（当前 ${manifest.description?.length ?? 0} 字符）。`);
-  }
+  checkManifestLocales(manifest);
   const expectedFiles = new Set();
   for (const cs of manifest.content_scripts || []) {
     for (const f of [...(cs.js || []), ...(cs.css || [])]) expectedFiles.add(f);

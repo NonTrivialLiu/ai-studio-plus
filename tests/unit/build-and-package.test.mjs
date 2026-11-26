@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { execFileSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { globSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './harness.mjs';
 
@@ -39,10 +39,16 @@ test('scripts/package.mjs 生成有效归档且仅包含 manifest.json 声明文
     for (const file of war.resources || []) expected.add(file);
   }
   for (const file of Object.values(manifest.icons || {})) expected.add(file);
+  if (manifest.default_locale) {
+    for (const file of globSync('_locales/*/messages.json', { cwd: join(ROOT, 'extension') })) expected.add(file);
+  }
 
   assert.deepStrictEqual(entries, Array.from(expected).sort());
   for (const icon of ['icons/icon-16.png', 'icons/icon-48.png', 'icons/icon-128.png']) {
     assert.ok(entries.includes(icon), `归档必须包含图标 ${icon}`);
+  }
+  for (const locale of ['_locales/en/messages.json', '_locales/zh_CN/messages.json']) {
+    assert.ok(entries.includes(locale), `归档必须包含多语言清单 ${locale}`);
   }
   assert.equal(entries.some(name => name.startsWith('src/') || name.startsWith('styles/')), false, '归档不得包含 src/ 或 styles/');
 });

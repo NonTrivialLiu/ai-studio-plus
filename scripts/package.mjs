@@ -3,7 +3,7 @@
  * 打包发布归档：先执行构建，再按 extension/manifest.json 声明清单生成并校验 build/AI-Studio-Plus-WebExtension.zip。
  */
 import { execFileSync } from 'node:child_process';
-import { mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync } from 'node:fs';
+import { globSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { runBuild } from './chromium.mjs';
@@ -22,6 +22,11 @@ function collectManifestFiles(manifest) {
     for (const file of res.resources || []) files.add(file);
   }
   for (const file of Object.values(manifest.icons || {})) files.add(file);
+  if (manifest.default_locale) {
+    for (const file of globSync('_locales/*/messages.json', { cwd: extensionDir }).sort()) {
+      files.add(file);
+    }
+  }
   return Array.from(files);
 }
 

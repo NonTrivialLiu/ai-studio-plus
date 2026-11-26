@@ -1,0 +1,10 @@
+{
+  "extName": {
+    "message": "AI Studio Plus",
+    "description": "Extension name shown in browser and store listings."
+  },
+  "extDesc": {
+    "message": "Searchable infinite history sidebar, fast actions, hover-to-peek, smart user bubble folding, and GPU relief for Google AI Studio.",
+    "description": "Extension short description (<= 132 chars)."
+  }
+}
