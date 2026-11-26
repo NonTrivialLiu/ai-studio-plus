@@ -133,20 +133,48 @@ Google AI Studio 原生侧栏默认不展示历史对话列表，查找或整理
 
 ## 安装指南
 
-> 适用于 **Google Chrome**、**Microsoft Edge**、**Brave**、**Arc** 等 Chromium 内核浏览器，生效域名为 `aistudio.google.com` 与 `aistudio.google.cn`。
+全面支持 **Microsoft Edge**、**Google Chrome**、**Brave**、**Arc**、**Vivaldi**、**Opera** 等所有 Chromium 内核浏览器，生效域名为 `aistudio.google.com` 与 `aistudio.google.cn`。
 
-### 方式一：下载预打包发行版（推荐）
+| 浏览器 | 立即可用方案（全浏览器通用） | 应用商店渠道 |
+|---|---|---|
+| **Microsoft Edge** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`edge://extensions`） | Edge Add-ons *（审核上架中）* |
+| **Google Chrome** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`chrome://extensions`） | 暂未上架 Chrome 商店 &mdash; 请用方式一（30 秒搞定） |
+| **Brave / Arc / Vivaldi / Opera** | [方式一：下载发行版压缩包](#方式一下载预打包发行版全浏览器通用无需等待商店审核)（`chrome://extensions`） | 兼容方式一发行包 |
 
-1. 下载最新发行压缩包：[**AI-Studio-Plus-WebExtension.zip**](https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip)。
-2. 将压缩包解压到一个**长期保留**的本地文件夹（加载后请勿删除该文件夹）。
-3. 在浏览器地址栏打开扩展管理页：
-   - Chrome / Arc / Brave：`chrome://extensions`
-   - Microsoft Edge：`edge://extensions`
-4. 打开右上角的 **开发者模式** 开关。
-5. 点击 **加载已解压的扩展程序**，选择解压后包含 `manifest.json` 的目录。
-6. 打开或刷新 [Google AI Studio](https://aistudio.google.com/) 即可生效。
+### 方式一：下载预打包发行版（全浏览器通用 · 无需等待商店审核）
 
-### 方式二：从源码构建
+> 全程图形界面操作、无需懂代码，约 30 秒即可完成安装。
+
+1. **下载最新版发行包**：[**AI-Studio-Plus-WebExtension.zip**](https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip)。
+2. **解压到一个长期保留的文件夹** *（安装后请勿删除或移动该文件夹，否则扩展会失效）*：
+   - **macOS**：建议移出 `下载` 目录（如放到 `文稿/Extensions/`），双击压缩包解压。
+   - **Windows**：右键压缩包 &rarr; **全部解压缩...** &rarr; 解压到固定目录（如 `C:\Extensions\AI-Studio-Plus`）。
+   - 打开解压后的文件夹，确认里面**直接包含 `manifest.json`** *（如果外面套了一层同名目录，请使用里面那一层）*。
+3. **打开浏览器扩展管理页**：
+   - **Chrome / Arc / Brave / Opera**：地址栏输入 `chrome://extensions` 并回车。
+   - **Microsoft Edge**：地址栏输入 `edge://extensions` 并回车。
+4. **开启开发者模式**：
+   - **Chrome / Brave**：打开页面**右上角**的「开发者模式」开关。
+   - **Microsoft Edge**：打开页面**左下角侧栏**（或右上角）的「开发人员模式」开关。
+5. **加载扩展（两种方式任选其一）**：
+   - **最快捷**：直接用鼠标把包含 `manifest.json` 的文件夹**拖进扩展管理页面空白处**即可。
+   - **手动选择**：点击页面左上角的「**加载已解压的扩展程序**」（Edge 为「加载解压缩的扩展」），选中刚才解压的文件夹。
+6. **开始使用**：打开或刷新 [**Google AI Studio**](https://aistudio.google.com/)（`.com` 或 `.cn` 均可），侧栏历史流、搜索、悬浮预览与气泡折叠立即生效。
+
+<details>
+<summary><strong>常见安装问题排查（点击展开）</strong></summary>
+
+- **提示“清单文件缺失或不可读取 / Manifest file is missing or unreadable”**：通常是选成了外层父目录或未解压直接加载 `.zip`。请确认解压并选中的目录里直接能看到 `manifest.json`、`content.js` 和 `icons/`。
+- **清理“下载”目录或重启后扩展消失**：本地加载的扩展直接读取磁盘文件夹，请将其放在不会被定期清理的固定目录；若误删，重新解压覆盖并重新加载一次即可。
+- **Chrome 弹出“停用开发者模式扩展程序”提示**：这是 Chromium 对本地未上架扩展的常规提醒，点「取消」关闭弹窗即可继续正常使用。
+
+</details>
+
+### 方式二：Microsoft Edge Add-ons 商店 *（审核上架中）*
+
+我们正在提交 **Microsoft Edge Add-ons** 官方商店（届时 Edge 用户可一键安装并自动更新）。在商店审核期间，或如果你使用的是 **Chrome、Brave、Arc、Vivaldi、Opera** 等其它浏览器，请直接使用上方的 **方式一**，功能与版本完全一致。
+
+### 方式三：从源码构建
 
 需要 **Node.js &ge; 22**（零运行时依赖）：
 
@@ -156,11 +184,13 @@ cd ai-studio-plus
 npm run build
 ```
 
-随后在 `chrome://extensions` 中点击 **加载已解压的扩展程序** 并选择项目下的 [`extension/`](extension/) 目录。
+随后在 `chrome://extensions` 或 `edge://extensions` 中点击 **加载已解压的扩展程序** 并选择项目下的 [`extension/`](extension/) 目录。
 
 ### 如何更新
 
-下载新版压缩包覆盖解压到原目录（或执行 `git pull && npm run build`），在 `chrome://extensions` 点击 **AI Studio Plus** 卡片上的 **刷新（&#x21BB;）** 按钮，然后刷新 AI Studio 页面即可。
+1. 下载新版 `AI-Studio-Plus-WebExtension.zip` 并**覆盖解压到原文件夹**（或执行 `git pull && npm run build`）。
+2. 打开 `chrome://extensions`（或 `edge://extensions`），点击 **AI Studio Plus** 卡片上的 **刷新（&#x21BB;）** 按钮。
+3. 刷新 Google AI Studio 页面即可完成更新。
 
 ---
 

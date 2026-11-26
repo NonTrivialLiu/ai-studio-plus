@@ -133,20 +133,48 @@ Google AI Studio's default navigation tucks your recent prompts away on a separa
 
 ## Installation
 
-> Works on **Google Chrome**, **Microsoft Edge**, **Brave**, **Arc**, and other Chromium-based browsers on `aistudio.google.com` and `aistudio.google.cn`.
+Works on **Microsoft Edge**, **Google Chrome**, **Brave**, **Arc**, **Vivaldi**, **Opera**, and any other Chromium-based browser on `aistudio.google.com` and `aistudio.google.cn`.
 
-### Option 1: Download Prebuilt Release (Recommended)
+| Browser | Instant Manual Install (Recommended Today) | Extension Store |
+|---|---|---|
+| **Microsoft Edge** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`edge://extensions`) | Edge Add-ons *(In Review / Coming Soon)* |
+| **Google Chrome** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`chrome://extensions`) | Not listed yet &mdash; use Option 1 (takes ~30s) |
+| **Brave / Arc / Vivaldi / Opera** | [Option 1 (Release ZIP)](#option-1-install-from-release-zip-all-browsers--no-store-wait) (`chrome://extensions`) | Compatible with Option 1 ZIP |
 
-1. Download the latest release archive: [**AI-Studio-Plus-WebExtension.zip**](https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip).
-2. Unzip it into a permanent folder on your disk *(keep this folder intact after loading)*.
-3. Open your browser's Extensions page:
-   - Chrome / Arc / Brave: `chrome://extensions`
-   - Microsoft Edge: `edge://extensions`
-4. Enable **Developer mode** (top-right toggle).
-5. Click **Load unpacked** and select the extracted folder containing `manifest.json`.
-6. Open or refresh [Google AI Studio](https://aistudio.google.com/).
+### Option 1: Install from Release ZIP *(All Browsers &bull; No Store Wait)*
 
-### Option 2: Build from Source
+> No coding or terminal needed &mdash; takes ~30 seconds.
+
+1. **Download** the latest package: [**AI-Studio-Plus-WebExtension.zip**](https://github.com/NonTrivialLiu/ai-studio-plus/releases/latest/download/AI-Studio-Plus-WebExtension.zip).
+2. **Unzip to a permanent folder** *(do **not** delete or move this folder after installing, or your browser will unload the extension)*:
+   - **macOS**: Move the ZIP out of `Downloads` (e.g., to `~/Applications/Extensions/` or `Documents/Extensions/`) and double-click to extract.
+   - **Windows**: Right-click the ZIP &rarr; **Extract All...** &rarr; pick a permanent path like `C:\Extensions\AI-Studio-Plus`.
+   - Open the extracted folder and make sure you see **`manifest.json`** directly inside it *(if there is a nested folder with the same name, open one level deeper)*.
+3. **Open your browser's Extensions page**:
+   - **Chrome / Arc / Brave / Opera**: paste `chrome://extensions` into the address bar and press Enter.
+   - **Microsoft Edge**: paste `edge://extensions` into the address bar and press Enter.
+4. **Enable Developer mode**:
+   - **Chrome / Brave**: switch ON the **Developer mode** toggle in the top-right corner.
+   - **Edge**: switch ON the **Developer mode** toggle in the bottom-left sidebar (or top-right on newer layouts).
+5. **Load the extension** *(either method works)*:
+   - **Fastest**: Drag and drop the extracted folder (containing `manifest.json`) directly onto the Extensions page.
+   - **Manual**: Click **Load unpacked** (or **Load unpacked extension**) and select that extracted folder.
+6. **Start using**: Open or refresh [**Google AI Studio**](https://aistudio.google.com/) (`aistudio.google.com` or `aistudio.google.cn`). Pin the icon from your toolbar puzzle piece if desired!
+
+<details>
+<summary><strong>Troubleshooting: Common First-Time Install Questions</strong></summary>
+
+- **"Manifest file is missing or unreadable"**: You probably selected an outer parent folder. Select the inner folder that directly contains `manifest.json`, `content.js`, and `icons/`.
+- **Extension disappeared after reboot / cleanup**: Browsers read unpacked extensions directly from disk; avoid keeping the folder in temporary folders you clean regularly. Just unzip again to a safe folder and reload once.
+- **Warning banner "Disable developer mode extensions"**: Normal Chromium prompt for local unpacked extensions; click Cancel/dismiss to keep using it.
+
+</details>
+
+### Option 2: Microsoft Edge Add-ons *(In Review / Coming Soon)*
+
+We are submitting **AI Studio Plus** to **Microsoft Edge Add-ons** (one-click install with automatic updates on Edge). Until store review completes — and for **Chrome, Brave, Arc, Vivaldi, and Opera** users — **Option 1** gives you the exact same verified build right away.
+
+### Option 3: Build from Source
 
 Requires **Node.js &ge; 22** (zero runtime dependencies):
 
@@ -156,11 +184,13 @@ cd ai-studio-plus
 npm run build
 ```
 
-Then load the [`extension/`](extension/) directory via **Load unpacked** on `chrome://extensions`.
+Then load the generated [`extension/`](extension/) directory via **Load unpacked** on `chrome://extensions` or `edge://extensions`.
 
-### Updating
+### How to Update
 
-Download and unzip the newest release over the same folder (or run `git pull && npm run build`), click **Reload (&#x21BB;)** on the **AI Studio Plus** card in `chrome://extensions`, and refresh AI Studio.
+1. Download the newest `AI-Studio-Plus-WebExtension.zip` and extract it **overwriting the same folder** (or run `git pull && npm run build`).
+2. Open `chrome://extensions` (or `edge://extensions`) and click **Reload (&#x21BB;)** on the **AI Studio Plus** card.
+3. Refresh your Google AI Studio tab.
 
 ---
 
